@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign up for Twitter Clone</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../src/css/register.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="register-card">
+        <!-- Header -->
+        <div class="header">
+          <img src="../src/assets/logo.png" alt="Twitter Logo" class="logo" />
+          <h1>Create your account</h1>
+          <p>Join millions of people on Twitter Clone today</p>
+        </div>
+
+        <!-- Registration Form -->
+        <form class="register-form" id="registerForm">
+          <!-- Name Field -->
+          <div class="form-group">
+            <div class="input-wrapper">
+              <input type="text" id="fullName" name="fullName" required />
+              <label for="fullName">Full Name</label>
+              <i class="fa-solid fa-user input-icon"></i>
+            </div>
+            <span class="error-message" id="fullNameError"></span>
+          </div>
+
+          <!-- Email Field -->
+          <div class="form-group">
+            <div class="input-wrapper">
+              <input type="email" id="email" name="email" required />
+              <label for="email">Email</label>
+              <i class="fa-solid fa-envelope input-icon"></i>
+            </div>
+            <span class="error-message" id="emailError"></span>
+          </div>
+
+          <!-- Username Field -->
+          <div class="form-group">
+            <div class="input-wrapper">
+              <input type="text" id="username" name="username" required />
+              <label for="username">Username</label>
+              <i class="fa-solid fa-at input-icon"></i>
+              <span class="username-prefix">@</span>
+            </div>
+            <span class="error-message" id="usernameError"></span>
+            <span class="helper-text"
+              >Your username will be @<span id="usernamePreview"></span
+            ></span>
+          </div>
+
+          <!-- Password Field -->
+          <div class="form-group">
+            <div class="input-wrapper">
+              <input type="password" id="password" name="password" required />
+              <label for="password">Password</label>
+              <i class="fa-solid fa-lock input-icon"></i>
+              <button
+                type="button"
+                class="toggle-password"
+                onclick="togglePassword('password')"
+              >
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+            <div class="password-strength" id="passwordStrength">
+              <div class="strength-bar">
+                <div class="strength-fill"></div>
+              </div>
+              <span class="strength-text">Password strength</span>
+            </div>
+            <span class="error-message" id="passwordError"></span>
+          </div>
+
+          <!-- Terms and Privacy -->
+          <div class="form-group">
+            <label class="checkbox-container">
+              <input type="checkbox" id="terms" name="terms" required />
+              <span class="checkmark"></span>
+              I agree to the <a href="#" class="link">Terms of Service</a> and
+              <a href="#" class="link">Privacy Policy</a>
+            </label>
+            <span class="error-message" id="termsError"></span>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="submit-btn" disabled>
+            <span class="btn-text">Create Account</span>
+            <i class="fa-solid fa-arrow-right btn-icon"></i>
+          </button>
+
+          <!-- Loading State -->
+          <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <span>Creating your account...</span>
+          </div>
+        </form>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p>
+            Already have an account?
+            <a href="login.html" class="link">Sign in</a>
+          </p>
+        </div>
+      </div>
+
+      <!-- Background Elements -->
+      <div class="bg-shape shape-1"></div>
+      <div class="bg-shape shape-2"></div>
+      <div class="bg-shape shape-3"></div>
+    </div>
+
+    <script>
+      // Configuration
+      const API_BASE_URL = "http://localhost:4000"; // Change port if different
+
+      // Toggle password visibility
+      function togglePassword(fieldId) {
+        const field = document.getElementById(fieldId);
+        const button = field.parentElement.querySelector(".toggle-password");
+        const icon = button.querySelector("i");
+
+        if (field.type === "password") {
+          field.type = "text";
+          icon.className = "fa-solid fa-eye-slash";
+        } else {
+          field.type = "password";
+          icon.className = "fa-solid fa-eye";
+        }
+      }
+
+      // Password strength checker
+      function checkPasswordStrength(password) {
+        let strength = 0;
+
+        if (password.length >= 8) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+
+        return strength;
+      }
+
+      // Update password strength indicator
+      function updatePasswordStrength() {
+        const password = document.getElementById("password").value;
+        const strengthFill = document.querySelector(".strength-fill");
+        const strengthText = document.querySelector(".strength-text");
+
+        const strength = checkPasswordStrength(password);
+        const percentage = (strength / 5) * 100;
+
+        strengthFill.style.width = percentage + "%";
+
+        if (strength === 0) {
+          strengthFill.className = "strength-fill";
+          strengthText.textContent = "Password strength";
+        } else if (strength <= 2) {
+          strengthFill.className = "strength-fill weak";
+          strengthText.textContent = "Weak";
+        } else if (strength <= 3) {
+          strengthFill.className = "strength-fill medium";
+          strengthText.textContent = "Medium";
+        } else if (strength <= 4) {
+          strengthFill.className = "strength-fill strong";
+          strengthText.textContent = "Strong";
+        } else {
+          strengthFill.className = "strength-fill very-strong";
+          strengthText.textContent = "Very Strong";
+        }
+      }
+
+      // Show error message
+      function showError(fieldId, message) {
+        const errorElement = document.getElementById(fieldId + "Error");
+        if (errorElement) {
+          errorElement.textContent = message;
+          errorElement.style.display = "block";
+        }
+      }
+
+      // Clear error message
+      function clearError(fieldId) {
+        const errorElement = document.getElementById(fieldId + "Error");
+        if (errorElement) {
+          errorElement.textContent = "";
+          errorElement.style.display = "none";
+        }
+      }
+
+      // Clear all errors
+      function clearAllErrors() {
+        ["fullName", "email", "username", "password", "terms"].forEach(
+          clearError
+        );
+      }
+
+      // Validate email format
+      function validateEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+      }
+
+      // Validate username format
+      function validateUsername(username) {
+        const re = /^[a-zA-Z0-9_]{3,20}$/;
+        return re.test(username);
+      }
+
+      // Form validation
+      function validateForm() {
+        const form = document.getElementById("registerForm");
+        const submitBtn = document.querySelector(".submit-btn");
+
+        const fullName = document.getElementById("fullName").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const termsCheckbox = document.getElementById("terms");
+
+        let allValid = true;
+
+        // Check all required fields
+        if (!fullName || !email || !username || !password) {
+          allValid = false;
+        }
+
+        // Check password strength (at least medium)
+        if (password && checkPasswordStrength(password) < 3) {
+          allValid = false;
+        }
+
+        // Check terms checkbox
+        if (!termsCheckbox.checked) {
+          allValid = false;
+        }
+
+        submitBtn.disabled = !allValid;
+        return allValid;
+      }
+
+      // Update username preview
+      function updateUsernamePreview() {
+        const username = document.getElementById("username").value.trim();
+        document.getElementById("usernamePreview").textContent =
+          username || "username";
+      }
+
+      // Handle registration
+      async function handleRegister(e) {
+        e.preventDefault();
+
+        // Clear previous errors
+        clearAllErrors();
+
+        // Get form values
+        const fullName = document.getElementById("fullName").value.trim();
+        const email = document.getElementById("email").value.trim();
+        const username = document.getElementById("username").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        // Client-side validation
+        let hasError = false;
+
+        if (!fullName || fullName.length < 2) {
+          showError(
+            "fullName",
+            "Please enter your full name (at least 2 characters)"
+          );
+          hasError = true;
+        }
+
+        if (!validateEmail(email)) {
+          showError("email", "Please enter a valid email address");
+          hasError = true;
+        }
+
+        if (!validateUsername(username)) {
+          showError(
+            "username",
+            "Username must be 3-20 characters (letters, numbers, underscore only)"
+          );
+          hasError = true;
+        }
+
+        if (password.length < 6) {
+          showError("password", "Password must be at least 6 characters");
+          hasError = true;
+        }
+
+        if (checkPasswordStrength(password) < 3) {
+          showError(
+            "password",
+            "Please use a stronger password (mix of uppercase, lowercase, numbers)"
+          );
+          hasError = true;
+        }
+
+        if (hasError) {
+          return;
+        }
+
+        // Show loading state
+        const loadingOverlay = document.getElementById("loadingOverlay");
+        const submitBtn = document.querySelector(".submit-btn");
+        loadingOverlay.style.display = "flex";
+        submitBtn.disabled = true;
+
+        try {
+          // Make API request
+          const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              fullName,
+              email,
+              username,
+              password,
+            }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            // Store token in localStorage
+            localStorage.setItem("token", data.data.token);
+            localStorage.setItem("user", JSON.stringify(data.data.user));
+
+            // Show success message
+            console.log("✅ Registration successful:", data.data.user);
+
+            // Hide loading
+            loadingOverlay.style.display = "none";
+
+            // Show success alert
+            alert("Account created successfully! Redirecting to dashboard...");
+
+            // Redirect to dashboard
+            setTimeout(() => {
+              window.location.href = "/dashboard";
+            }, 1000);
+          } else {
+            // Handle error response
+            const errorMessage =
+              data.message || "Registration failed. Please try again.";
+
+            // Show specific field errors
+            if (errorMessage.includes("email")) {
+              showError("email", errorMessage);
+            } else if (errorMessage.includes("username")) {
+              showError("username", errorMessage);
+            } else {
+              showError("fullName", errorMessage);
+            }
+
+            // Hide loading
+            loadingOverlay.style.display = "none";
+            submitBtn.disabled = false;
+          }
+        } catch (error) {
+          console.error("❌ Registration error:", error);
+          showError(
+            "fullName",
+            "Network error. Please check your connection and try again."
+          );
+
+          // Hide loading
+          loadingOverlay.style.display = "none";
+          submitBtn.disabled = false;
+        }
+      }
+
+      // Check if already logged in
+      function checkAuth() {
+        const token = localStorage.getItem("token");
+        if (token) {
+          // Verify token is valid
+          fetch(`${API_BASE_URL}/api/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                // Already logged in, redirect to dashboard
+                window.location.href = "/dashboard";
+              }
+            })
+            .catch(() => {
+              // Token invalid, clear it
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
+            });
+        }
+      }
+
+      // Initialize form
+      document.addEventListener("DOMContentLoaded", function () {
+        // Check if already logged in
+        checkAuth();
+
+        // Password strength listener
+        document
+          .getElementById("password")
+          .addEventListener("input", function () {
+            updatePasswordStrength();
+            validateForm();
+          });
+
+        // Username preview listener
+        document
+          .getElementById("username")
+          .addEventListener("input", function () {
+            updateUsernamePreview();
+            validateForm();
+            clearError("username");
+          });
+
+        // Add validation listeners to all form fields
+        const formFields = document.querySelectorAll("input[required]");
+        formFields.forEach((field) => {
+          field.addEventListener("input", function () {
+            validateForm();
+            clearError(field.id);
+          });
+          field.addEventListener("change", validateForm);
+        });
+
+        // Form submission
+        document
+          .getElementById("registerForm")
+          .addEventListener("submit", handleRegister);
+      });
+    </script>
+  </body>
+</html>

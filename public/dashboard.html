@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - Twitter Clone</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../src/css/dashboard.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="left-sidebar">
+        <img src="../src/assets/logo.png" alt="Twitter logo" />
+        <div class="icons">
+          <div class="nav-item active">
+            <i class="fa-solid fa-house"></i>
+            <span class="nav-text">Home</span>
+          </div>
+          <div class="nav-item">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <span class="nav-text">Explore</span>
+          </div>
+          <div class="nav-item">
+            <i class="fa-regular fa-bell"></i>
+            <span class="nav-text">Notifications</span>
+          </div>
+          <div class="nav-item">
+            <i class="fa-regular fa-envelope"></i>
+            <span class="nav-text">Messages</span>
+          </div>
+          <div class="nav-item">
+            <i class="fa-regular fa-bookmark"></i>
+            <span class="nav-text">Bookmarks</span>
+          </div>
+          <div class="nav-item">
+            <i class="fa-regular fa-user"></i>
+            <span class="nav-text">Profile</span>
+          </div>
+          <div class="nav-item">
+            <i class="fa-solid fa-ellipsis"></i>
+            <span class="nav-text">More</span>
+          </div>
+        </div>
+        <button class="tweet-btn">
+          <i class="fa-solid fa-feather-pointed"></i>
+          <span class="tweet-text">Tweet</span>
+        </button>
+        <div class="user-profile">
+          <img
+            src="../src/assets/profile.jpg"
+            alt="User Profile"
+            class="user-avatar"
+          />
+          <div class="user-info">
+            <span class="user-name">John Doe</span>
+            <span class="user-handle">@johndoe</span>
+          </div>
+          <button class="logout-btn" title="Logout">
+            <i class="fa-solid fa-right-from-bracket"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <div class="main-header">
+          <h1>Home</h1>
+          <i class="fa-solid fa-sparkles"></i>
+        </div>
+
+        <div class="post-area">
+          <div class="post-compose">
+            <img
+              src="../src/assets/profile.jpg"
+              alt="Your Profile"
+              class="compose-avatar"
+            />
+            <div class="compose-content">
+              <textarea
+                class="post"
+                placeholder="What's happening?"
+                maxlength="280"
+              ></textarea>
+              <div class="post-privacy">
+                <i class="fa-solid fa-earth-americas"></i>
+                <span>Everyone can reply</span>
+              </div>
+              <div class="post-actions">
+                <div class="icons">
+                  <i class="fa-regular fa-image" title="Media"></i>
+                  <i class="fa-solid fa-poll" title="Poll"></i>
+                  <i class="fa-regular fa-face-smile" title="Emoji"></i>
+                  <i class="fa-regular fa-calendar" title="Schedule"></i>
+                  <i class="fa-solid fa-location-dot" title="Location"></i>
+                </div>
+                <div class="post-controls">
+                  <div class="character-count">
+                    <svg viewBox="0 0 20 20" class="char-circle">
+                      <circle
+                        cx="10"
+                        cy="10"
+                        r="9"
+                        stroke="#1da1f2"
+                        stroke-width="2"
+                        fill="none"
+                      />
+                    </svg>
+                    <span class="char-text">280</span>
+                  </div>
+                  <button class="post-button" disabled>Post</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="feed-divider"></div>
+
+        <div class="post-container">
+          <div class="posts">
+            <div class="post-item">
+              <img
+                src="../src/assets/profile.jpg"
+                alt="Profile Picture"
+                class="profile-pic"
+              />
+              <div class="post-content">
+                <div class="post-header">
+                  <span class="username">John Doe</span>
+                  <i class="fa-solid fa-circle-check verified"></i>
+                  <span class="handle">@johndoe</span>
+                  <span class="timestamp">· 2h</span>
+                  <div class="post-menu">
+                    <i class="fa-solid fa-ellipsis"></i>
+                  </div>
+                </div>
+                <p class="post-text">
+                  Just launched my new project! Excited to share this with
+                  everyone. What do you think? 🚀 #WebDevelopment #JavaScript
+                </p>
+                <div class="post-media">
+                  <img
+                    src="../src/assets/sample-post.jpg"
+                    alt="Post Media"
+                    class="post-image"
+                  />
+                </div>
+                <div class="post-stats">
+                  <div class="stat-item">
+                    <i class="fa-regular fa-comment"></i>
+                    <span>24</span>
+                  </div>
+                  <div class="stat-item retweet">
+                    <i class="fa-solid fa-retweet"></i>
+                    <span>156</span>
+                  </div>
+                  <div class="stat-item like">
+                    <i class="fa-regular fa-heart"></i>
+                    <span>1.2K</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-regular fa-chart-bar"></i>
+                    <span>2.5K</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-regular fa-share-from-square"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="post-item">
+              <img
+                src="../src/assets/profile2.jpg"
+                alt="Profile Picture"
+                class="profile-pic"
+              />
+              <div class="post-content">
+                <div class="post-header">
+                  <span class="username">Jane Smith</span>
+                  <span class="handle">@janesmith</span>
+                  <span class="timestamp">· 4h</span>
+                  <div class="post-menu">
+                    <i class="fa-solid fa-ellipsis"></i>
+                  </div>
+                </div>
+                <p class="post-text">
+                  Beautiful sunset today! Nature never fails to amaze me 🌅
+                </p>
+                <div class="post-stats">
+                  <div class="stat-item">
+                    <i class="fa-regular fa-comment"></i>
+                    <span>8</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-solid fa-retweet"></i>
+                    <span>42</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-regular fa-heart"></i>
+                    <span>287</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-regular fa-chart-bar"></i>
+                    <span>850</span>
+                  </div>
+                  <div class="stat-item">
+                    <i class="fa-regular fa-share-from-square"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="post-item promoted">
+              <div class="promoted-label">
+                <i class="fa-solid fa-arrow-trend-up"></i>
+                <span>Promoted</span>
+              </div>
+              <img
+                src="../src/assets/brand-logo.jpg"
+                alt="Brand Profile"
+                class="profile-pic"
+              />
+              <div class="post-content">
+                <div class="post-header">
+                  <span class="username">TechCorp</span>
+                  <i class="fa-solid fa-circle-check verified"></i>
+                  <span class="handle">@techcorp</span>
+                  <span class="timestamp">· Promoted</span>
+                </div>
+                <p class="post-text">
+                  Discover the future of technology with our latest innovation.
+                  Join thousands of satisfied customers! #TechInnovation
+                </p>
+                <div class="post-cta">
+                  <button class="cta-button">Learn More</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="right-sidebar">
+        <div class="search-container">
+          <i class="fa-solid fa-magnifying-glass search-icon"></i>
+          <input type="text" class="search-bar" placeholder="Search Twitter" />
+        </div>
+
+        <div class="trending-section">
+          <h3>What's happening</h3>
+          <div class="trend-item">
+            <div class="trend-category">Trending in Technology</div>
+            <span class="trend-hashtag">#JavaScript</span>
+            <span class="trend-tweets">120K Tweets</span>
+          </div>
+          <div class="trend-item">
+            <div class="trend-category">Trending in Web Development</div>
+            <span class="trend-hashtag">#ReactJS</span>
+            <span class="trend-tweets">85K Tweets</span>
+          </div>
+          <div class="trend-item">
+            <div class="trend-category">Trending</div>
+            <span class="trend-hashtag">#CSS</span>
+            <span class="trend-tweets">60K Tweets</span>
+          </div>
+          <div class="show-more">
+            <span>Show more</span>
+          </div>
+        </div>
+
+        <div class="suggestions-section">
+          <h3>Who to follow</h3>
+          <div class="suggestion-item">
+            <img
+              src="../src/assets/suggestion1.jpg"
+              alt="Suggested User"
+              class="suggestion-avatar"
+            />
+            <div class="suggestion-info">
+              <span class="suggestion-name">Sarah Wilson</span>
+              <span class="suggestion-handle">@sarahw</span>
+            </div>
+            <button class="follow-btn">Follow</button>
+          </div>
+          <div class="suggestion-item">
+            <img
+              src="../src/assets/suggestion2.jpg"
+              alt="Suggested User"
+              class="suggestion-avatar"
+            />
+            <div class="suggestion-info">
+              <span class="suggestion-name">Mike Chen</span>
+              <span class="suggestion-handle">@mikechen</span>
+            </div>
+            <button class="follow-btn">Follow</button>
+          </div>
+          <div class="show-more">
+            <span>Show more</span>
+          </div>
+        </div>
+
+        <div class="footer-links">
+          <a href="#">Terms of Service</a>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Cookie Policy</a>
+          <a href="#">Accessibility</a>
+          <a href="#">Ads info</a>
+          <a href="#">More</a>
+          <div class="copyright">© 2025 Twitter Clone</div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // ============================================
+      // CONFIGURATION
+      // ============================================
+      const API_BASE_URL = "http://localhost:4000";
+      let currentUser = null; // ✅ ADDED THIS
+
+      console.log("🚀 Dashboard script loaded");
+
+      // ============================================
+      // AUTHENTICATION
+      // ============================================
+      async function checkAuthentication() {
+        console.log("🔐 Checking authentication...");
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+          console.log("❌ No token found");
+          redirectToLogin();
+          return false;
+        }
+
+        console.log("✅ Token found");
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`, // ✅ FIXED TYPO (was "Authorisation")
+            },
+          });
+
+          const data = await response.json();
+          console.log("📦 Response:", data);
+
+          if (!data.success) {
+            throw new Error("Invalid token");
+          }
+
+          currentUser = data.data.user;
+          console.log(
+            "✅ Authentication successful! User:",
+            currentUser.username
+          );
+          return true;
+        } catch (error) {
+          console.error("❌ Authentication failed:", error);
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+          redirectToLogin();
+          return false;
+        }
+      }
+
+      function redirectToLogin() {
+        console.log("🔄 Redirecting to login...");
+        window.location.href = "/login.html";
+      }
+
+      // ============================================
+      // LOAD USER DATA
+      // ============================================
+      function loadUserData() {
+        console.log("📝 Loading user data...");
+        if (!currentUser) {
+          console.log("⚠️ No user data available");
+          return;
+        }
+
+        // Update user profile in sidebar
+        const userName = document.querySelector(".user-info .user-name");
+        const userHandle = document.querySelector(".user-info .user-handle");
+
+        if (userName) {
+          userName.textContent = currentUser.fullName || currentUser.fullname;
+          console.log("✅ Updated user name:", userName.textContent);
+        }
+
+        if (userHandle) {
+          userHandle.textContent = `@${currentUser.username}`;
+          console.log("✅ Updated user handle:", userHandle.textContent);
+        }
+
+        console.log("✅ User data loaded successfully");
+      }
+
+      // ============================================
+      // NAVIGATION
+      // ============================================
+      function setupNavigation() {
+        console.log("🧭 Setting up navigation...");
+
+        const navItems = document.querySelectorAll(".nav-item"); // ✅ FIXED (was querySelector)
+
+        navItems.forEach((item) => {
+          item.addEventListener("click", function () {
+            const navText = this.querySelector(".nav-text");
+            console.log(
+              `📍 Navigation clicked: ${
+                navText ? navText.textContent : "Unknown"
+              }`
+            );
+
+            // Remove active class from all items
+            navItems.forEach((nav) => nav.classList.remove("active"));
+
+            // Add active class to clicked item
+            this.classList.add("active");
+          });
+        });
+
+        console.log("✅ Navigation setup complete");
+      }
+
+      // ============================================
+      // TWEET COMPOSER
+      // ============================================
+      function setupTweetComposer() {
+        console.log("🎨 Setting up tweet composer...");
+
+        const textarea = document.querySelector(".post");
+        const charText = document.querySelector(".char-text");
+        const postButton = document.querySelector(".post-button");
+        const maxLength = 280;
+
+        if (!textarea || !charText || !postButton) {
+          console.error("❌ Composer elements not found!");
+          return;
+        }
+
+        textarea.addEventListener("input", function () {
+          const remaining = maxLength - this.value.length;
+          charText.textContent = remaining;
+
+          // Enable/disable button
+          const canPost = this.value.trim().length > 0 && remaining >= 0;
+          postButton.disabled = !canPost;
+
+          // Color coding
+          if (remaining < 0) {
+            charText.style.color = "#ff6b6b";
+          } else if (remaining < 20) {
+            charText.style.color = "#ffa500";
+          } else {
+            charText.style.color = "#1da1f2";
+          }
+        });
+
+        console.log("✅ Tweet composer setup complete");
+      }
+
+      // ============================================
+      // POST TWEET
+      // ============================================
+      async function postTweet() {
+        console.log("📤 Posting tweet...");
+
+        const textarea = document.querySelector(".post");
+        const charText = document.querySelector(".char-text");
+        const postButton = document.querySelector(".post-button");
+        const content = textarea.value.trim();
+
+        // Validation
+        if (!content) {
+          alert("Please write something before posting!");
+          return;
+        }
+
+        if (content.length > 280) {
+          alert("Tweet exceeded the character limit!");
+          return;
+        }
+
+        // Disable button during posting
+        postButton.disabled = true;
+        postButton.textContent = "Posting...";
+
+        try {
+          const token = localStorage.getItem("token");
+
+          const response = await fetch(`${API_BASE_URL}/api/tweets`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`, // ✅ FIXED TYPO (was "Authorisation")
+            },
+            body: JSON.stringify({ content }),
+          });
+
+          const data = await response.json();
+          console.log("📬 Server response:", data);
+
+          if (data.success) {
+            console.log("✅ Tweet posted successfully!");
+
+            const newTweet = {
+              _id: data.data.tweet._id,
+              content: content,
+              author: currentUser,
+              createdAt: new Date().toISOString(),
+              likes: 0,
+              retweets: 0,
+              comments: 0,
+            };
+
+            // Reset composer
+            textarea.value = "";
+            charText.textContent = "280";
+            charText.style.color = "#1da1f2";
+            postButton.textContent = "Post";
+
+            await loadTweets();
+
+            window.scrollTo({ top: 0, behavior: "smooth" });
+          } else {
+            throw new Error(data.message || "Failed to post tweet");
+          }
+        } catch (error) {
+          console.error("❌ Error posting tweet:", error);
+          alert("Failed to post tweet. Please try again.");
+          postButton.disabled = false;
+          postButton.textContent = "Post";
+        }
+      }
+
+      // ============================================
+      // TWEET DISPLAY
+      // ============================================
+      function addTweetToFeed(tweet) {
+        console.log("➕ Adding tweet to feed");
+        const postsContainer = document.querySelector(".posts");
+
+        if (!postsContainer) {
+          console.error("❌ Posts container not found!");
+          return;
+        }
+
+        const tweetHTML = createTweetHTML(tweet);
+        postsContainer.insertAdjacentHTML("afterbegin", tweetHTML);
+        console.log("✅ Tweet added to feed");
+      }
+
+      function createTweetHTML(tweet) {
+        const author = tweet.author || currentUser;
+        const authorName = author.fullName || author.fullname || "Unknown User";
+        const authorHandle = author.username || "unknown";
+        const authorAvatar = author.avatar || "../src/assets/profile.jpg";
+        const timeAgo = getTimeAgo(new Date(tweet.createdAt));
+        const safeContent = escapeHTML(tweet.content);
+
+        //Check if the current user owns the tweet
+        const isOwnTweet = currentUser && tweet.author._id === currentUser._id;
+
+        //Check if tweet liked/retweeted by same user
+        const isLiked = tweet.likes && tweet.likes.includes(currentUser?._id);
+        const isRetweeted =
+          tweet.retweets && tweet.retweets.includes(currentUser?._id);
+
+        return `
+      <div class="post-item" data-tweet-id="${tweet._id}">
+        <img src="${authorAvatar}" alt="Profile" class="profile-pic" />
+        <div class="post-content">
+          <div class="post-header">
+            <span class="username">${authorName}</span>
+            <span class="handle">@${authorHandle}</span>
+            <span class="timestamp">· ${timeAgo}</span>
+            ${
+              isOwnTweet
+                ? `
+            <div class="post-menu" onclick="deleteTweet('${tweet._id}')">
+            <i class="fa-solid fa-trash" style="color:#f91880; cursor:pointer;"title="Delete tweet"></i>
+            </div>`
+                : `
+            <div class="post-menu">
+              <i class="fa-solid fa-ellipsis"></i>
+              </div>
+              `
+            }
+            <div class="post-menu">
+              <i class="fa-solid fa-ellipsis"></i>
+            </div>
+          </div>
+          <p class="post-text">${safeContent}</p>
+          <div class="post-stats">
+            <div class="stat-item">
+              <i class="fa-regular fa-comment"></i>
+              <span>${tweet.replies || 0}</span>
+            </div>
+            <div class="stat-item" onclick="likeTweet('${
+              tweet._id
+            }')" style="cursor:pointer; ${
+          isRetweeted ? "color:#00ba7c;" : " "
+        }">
+              <i class="fa-solid fa-retweet"></i>
+              <span>${
+                Array.isArray(tweet.retweets) ? tweet.retweets.length : 0
+              }</span>
+              </div>
+            <div class="stat-item" onclick="likeTweet('${
+              tweet._id
+            }')" style="cursor: pointer; ${isLiked ? "color: #f91880;" : ""}">
+            <i class="fa-${isLiked ? "solid" : "regular"} fa-heart"></i>
+            <span>${Array.isArray(tweet.likes) ? tweet.likes.length : 0}</span>
+            </div>
+            <div class="stat-item">
+              <i class="fa-regular fa-chart-bar"></i>
+              <span>${tweet.views || 0}</span>
+            </div>
+            <div class="stat-item">
+              <i class="fa-regular fa-share-from-square"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+      }
+
+      //Load tweets from backend
+
+      async function loadTweets() {
+        console.log("Laoding tweets from backend...");
+
+        const postsContainer = document.querySelector(".posts");
+
+        if (!postsContainer) {
+          console.error("Posts container not found");
+          return;
+        }
+        //Show loading state
+        postsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#536471;">
+          <i class="fas fa-spinner fa-spin" style="font-size:32px;"></i>
+          <p style="margin-top:16px;">Loading tweets...</p>
+          </div>
+          `;
+
+        try {
+          const token = localStorage.getItem("token");
+
+          const response = await fetch(`${API_BASE_URL}/api/tweets`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          const data = await response.json();
+          console.log("Tweets response", data);
+
+          if (data.success) {
+            const tweets = data.data.tweets;
+            console.log(`Loaded ${tweets.length} tweets`);
+
+            if (tweets.length === 0) {
+              //NO tweets yet
+              postsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#536471;">
+                    <i class="fas fa-feather-alt" style="font-size:48px; margin-bottom:16px;"></i>
+                    <h3 style='color:#e7e9ea; margin-bottom:8px;">No tweets yet</h3>
+                    <p>Be the first to post something</p>
+                    </div>
+                    ;`;
+            } else {
+              //Clear laoding and display tweets
+              postsContainer.innerHTML = " ";
+              tweets.forEach((tweet) => {
+                const tweetHTML = createTweetHTML(tweet);
+                postsContainer.insertAdjacentHTML("beforeend", tweetHTML);
+              });
+            }
+          } else {
+            throw new Error(data.message || "Failed to load tweets");
+          }
+        } catch (error) {
+          console.error("Error loading tweets", error);
+          postsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#f91880;">
+              <i class="fas fa-exclamation-circle" style="font-size:48px; margin-bottom:8px">Failed to load tweets</h3>
+                <p> ${error.message}</p>
+                <button onclick="loadTweets()" style="margin-top:16px; padding:10px 20px; background: #1da1f2; color:white; border:none;border-radius:20px;">
+                  Retry
+                  </button>
+                  </div>
+                  ;`;
+        }
+      }
+
+      //Like tweet
+
+      async function likeTweet(tweetId) {
+        console.log("❤️ Liking tweet:", tweetId);
+
+        try {
+          const token = localStorage.getItem("token");
+
+          // ✅ FIXED: Added missing slash before tweetId
+          const response = await fetch(
+            `${API_BASE_URL}/api/tweets/${tweetId}/like`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const data = await response.json();
+          console.log("📦 Like response:", data);
+
+          if (data.success) {
+            // Update the like button in UI
+            const tweetElement = document.querySelector(
+              `[data-tweet-id="${tweetId}"]`
+            );
+            if (tweetElement) {
+              const likeBtn = tweetElement.querySelector(
+                ".stat-item:nth-child(3)"
+              );
+              const likeIcon = likeBtn.querySelector("i");
+              const likeCount = likeBtn.querySelector("span");
+
+              // Toggle heart icon
+              if (data.data.isLiked) {
+                likeIcon.classList.remove("fa-regular");
+                likeIcon.classList.add("fa-solid");
+                likeBtn.style.color = "#f91880";
+              } else {
+                likeIcon.classList.remove("fa-solid");
+                likeIcon.classList.add("fa-regular");
+                likeBtn.style.color = "";
+              }
+
+              // Update count
+              likeCount.textContent = data.data.likesCount;
+              console.log("✅ Like UI updated");
+            }
+          } else {
+            throw new Error(data.message);
+          }
+        } catch (error) {
+          console.error("Error liking tweet", error);
+          alert("Failed to like tweet,Please try again");
+        }
+      }
+
+      //Retweet
+      async function retweetTweet(tweetId) {
+        console.log("Retweeting tweet", tweetId);
+
+        try {
+          const token = localStorage.getItem("token");
+
+          const response = await fetch(
+            `${API_BASE_URL}/api/tweets/${tweetId}/retweet`,
+            {
+              method: "POST",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          const data = await response.json();
+          console.log("Retweet response", data);
+
+          if (data.success) {
+            //Update tweet button
+
+            const tweetElement = document.querySelector(
+              `[data-tweet-id="${tweetId}"]`
+            );
+            if (tweetElement) {
+              const retweetBtn = tweetElement.querySelector(
+                ".stat-item:nth-child(2)"
+              );
+              const retweetCount = retweetBtn.querySelector("span");
+
+              //Toggle retweet style
+              if (data.data.isRetweeted) {
+                retweetBtn.style.color = "#00ba7c";
+              } else {
+                retweetBtn.style.color = " ";
+              }
+
+              //Update count
+              retweetCount.textContent = data.data.retweetsCount;
+              console.log("✅ Retweet UI updated");
+            }
+          } else {
+            throw new Error(data.message);
+          }
+        } catch (error) {
+          console.error("Error retweeting", error);
+          alert("Failed to retweet. Please try again");
+        }
+      }
+
+      //Delete tweet
+
+      async function deleteTweet(tweetId) {
+        console.log("Deleting tweet", tweetId);
+
+        if (
+          !confirm("Are you sure you want to delete this delete this tweet?")
+        ) {
+          return;
+        }
+        try {
+          const token = localStorage.getItem("token");
+
+          const response = await fetch(
+            `${API_BASE_URL}/api/tweets/${tweetId}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+          const data = await response.json();
+          console.log("Delete response", data);
+
+          if (data.success) {
+            const tweetElement = document.querySelector(
+              `[data-tweet-id="${tweetId}"]`
+            );
+            if (tweetElement) {
+              tweetElement.style.opacity = "0";
+              tweetElement.style.transition = "all 0.3s ease";
+
+              setTimeout(() => {
+                tweetElement.remove();
+                console.log("Tweet removed from UI");
+              }, 300);
+            }
+          } else {
+            throw new Error(data.message);
+          }
+        } catch (error) {
+          console.error("Error deleting tweet", error);
+          alert("Failed to delete tweet. Please try again");
+        }
+      }
+
+      // ============================================
+      // HELPER FUNCTIONS
+      // ============================================
+      function getTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + "y";
+
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + "mo";
+
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + "d";
+
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + "h";
+
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + "m";
+
+        return Math.floor(seconds) + "s";
+      }
+
+      function escapeHTML(text) {
+        const div = document.createElement("div");
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // ============================================
+      // LOGOUT
+      // ============================================
+      function setupLogout() {
+        console.log("🚪 Setting up logout...");
+        const logoutBtn = document.querySelector(".logout-btn");
+
+        if (!logoutBtn) {
+          console.log("⚠️ No logout button found");
+          return;
+        }
+
+        logoutBtn.addEventListener("click", function () {
+          console.log("🚪 Logout clicked");
+
+          if (confirm("Are you sure you want to logout?")) {
+            console.log("✅ User confirmed logout");
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            console.log("🗑️ Cleared localStorage");
+            window.location.href = "/login.html";
+          } else {
+            console.log("❌ User cancelled logout");
+          }
+        });
+
+        console.log("✅ Logout setup complete");
+      }
+
+      // ============================================
+      // INITIALIZE
+      // ============================================
+      async function initDashboard() {
+        console.log("🚀 Initializing dashboard...");
+        console.log("=".repeat(50));
+
+        // Check authentication
+        const isAuthenticated = await checkAuthentication();
+
+        if (!isAuthenticated) {
+          console.log("❌ Authentication failed - stopping initialization");
+          return;
+        }
+
+        console.log("✅ User authenticated - continuing initialization");
+
+        // Load user data
+        loadUserData();
+
+        // Setup features
+        setupTweetComposer();
+        setupNavigation();
+        setupLogout();
+
+        //Load tweets from backend
+        await loadTweets();
+
+        // Connect post button
+        const postButton = document.querySelector(".post-button");
+        if (postButton) {
+          postButton.addEventListener("click", postTweet);
+          console.log("✅ Post button connected");
+        }
+
+        console.log("=".repeat(50));
+        console.log("✅ Dashboard initialization complete!");
+      }
+
+      // Wait for HTML to load
+      document.addEventListener("DOMContentLoaded", initDashboard);
+
+      // Interactive stat items
+      document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".stat-item").forEach((item) => {
+          item.addEventListener("click", function () {
+            this.classList.toggle("active");
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

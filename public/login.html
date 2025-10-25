@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign in to Twitter Clone</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="../src/css/components.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="login-card">
+        <!-- Header -->
+        <div class="header">
+          <img src="../src/assets/logo.png" alt="Twitter Logo" class="logo" />
+          <h1>Sign in to Twitter Clone</h1>
+          <p>Welcome back! Please sign in to your account</p>
+        </div>
+
+        <!-- Login Form -->
+        <form class="login-form" id="loginForm">
+          <!-- Email/Username Field -->
+          <div class="form-group">
+            <div class="input-wrapper">
+              <input type="text" id="identifier" name="identifier" required />
+              <label for="identifier">Email or Username</label>
+              <i class="fa-solid fa-user input-icon"></i>
+            </div>
+            <span class="error-message" id="identifierError"></span>
+          </div>
+
+          <!-- Password Field -->
+          <div class="form-group">
+            <div class="input-wrapper">
+              <input type="password" id="password" name="password" required />
+              <label for="password">Password</label>
+              <i class="fa-solid fa-lock input-icon"></i>
+              <button
+                type="button"
+                class="toggle-password"
+                onclick="togglePassword()"
+              >
+                <i class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+            <span class="error-message" id="passwordError"></span>
+          </div>
+
+          <!-- Remember Me & Forgot Password -->
+          <div class="form-options">
+            <label class="checkbox-container">
+              <input type="checkbox" id="remember" name="remember" />
+              <span class="checkmark"></span>
+              Remember me
+            </label>
+            <a href="#" class="forgot-link">Forgot password?</a>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" class="submit-btn" disabled>
+            <span class="btn-text">Sign In</span>
+            <i class="fa-solid fa-arrow-right btn-icon"></i>
+          </button>
+
+          <!-- Social Login -->
+          <div class="divider">
+            <span>or continue with</span>
+          </div>
+
+          <div class="social-buttons">
+            <button type="button" class="social-btn google-btn">
+              <i class="fa-brands fa-google"></i>
+              <span>Google</span>
+            </button>
+            <button type="button" class="social-btn github-btn">
+              <i class="fa-brands fa-github"></i>
+              <span>GitHub</span>
+            </button>
+          </div>
+
+          <!-- Loading State -->
+          <div class="loading-overlay" id="loadingOverlay">
+            <div class="spinner"></div>
+            <span>Signing you in...</span>
+          </div>
+        </form>
+
+        <!-- Footer -->
+        <div class="footer">
+          <p>
+            Don't have an account?
+            <a href="register.html" class="link">Sign up</a>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Configuration
+      const API_BASE_URL = "http://localhost:4000"; // Change port if different
+
+      // Toggle password visibility
+      function togglePassword() {
+        const field = document.getElementById("password");
+        const button = document.querySelector(".toggle-password");
+        const icon = button.querySelector("i");
+
+        if (field.type === "password") {
+          field.type = "text";
+          icon.className = "fa-solid fa-eye-slash";
+        } else {
+          field.type = "password";
+          icon.className = "fa-solid fa-eye";
+        }
+      }
+
+      // Show error message
+      function showError(fieldId, message) {
+        const errorElement = document.getElementById(fieldId + "Error");
+        if (errorElement) {
+          errorElement.textContent = message;
+          errorElement.style.display = "block";
+        }
+      }
+
+      // Clear error message
+      function clearError(fieldId) {
+        const errorElement = document.getElementById(fieldId + "Error");
+        if (errorElement) {
+          errorElement.textContent = "";
+          errorElement.style.display = "none";
+        }
+      }
+
+      // Clear all errors
+      function clearAllErrors() {
+        clearError("identifier");
+        clearError("password");
+      }
+
+      // Form validation
+      function validateForm() {
+        const form = document.getElementById("loginForm");
+        const submitBtn = document.querySelector(".submit-btn");
+        const identifier = document.getElementById("identifier").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        const isValid = identifier.length > 0 && password.length > 0;
+        submitBtn.disabled = !isValid;
+      }
+
+      // Login function
+      async function handleLogin(e) {
+        e.preventDefault();
+
+        // Clear previous errors
+        clearAllErrors();
+
+        // Get form values
+        const identifier = document.getElementById("identifier").value.trim();
+        const password = document.getElementById("password").value.trim();
+
+        // Validation
+        if (!identifier) {
+          showError("identifier", "Email or username is required");
+          return;
+        }
+
+        if (!password) {
+          showError("password", "Password is required");
+          return;
+        }
+
+        // Show loading state
+        const loadingOverlay = document.getElementById("loadingOverlay");
+        const submitBtn = document.querySelector(".submit-btn");
+        loadingOverlay.style.display = "flex";
+        submitBtn.disabled = true;
+
+        try {
+          // Make API request
+          const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ identifier, password }),
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            // Store token in localStorage
+            localStorage.setItem("token", data.data.token);
+            localStorage.setItem("user", JSON.stringify(data.data.user));
+
+            // Show success message
+            console.log("✅ Login successful:", data.data.user);
+
+            // Redirect to dashboard
+            window.location.href = "/dashboard";
+          } else {
+            // Handle error response
+            const errorMessage =
+              data.message || "Login failed. Please try again.";
+
+            if (errorMessage.includes("credentials")) {
+              showError("password", errorMessage);
+            } else {
+              showError("identifier", errorMessage);
+            }
+
+            // Hide loading
+            loadingOverlay.style.display = "none";
+            submitBtn.disabled = false;
+          }
+        } catch (error) {
+          console.error("❌ Login error:", error);
+          showError(
+            "password",
+            "Network error. Please check your connection and try again."
+          );
+
+          // Hide loading
+          loadingOverlay.style.display = "none";
+          submitBtn.disabled = false;
+        }
+      }
+
+      // Check if already logged in
+      function checkAuth() {
+        const token = localStorage.getItem("token");
+        if (token) {
+          // Verify token is valid by checking /me endpoint
+          fetch(`${API_BASE_URL}/api/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+            .then((res) => res.json())
+            .then((data) => {
+              if (data.success) {
+                // Already logged in, redirect to dashboard
+                window.location.href = "/dashboard";
+              }
+            })
+            .catch(() => {
+              // Token invalid, clear it
+              localStorage.removeItem("token");
+              localStorage.removeItem("user");
+            });
+        }
+      }
+
+      // Initialize form
+      document.addEventListener("DOMContentLoaded", function () {
+        // Check if already logged in
+        checkAuth();
+
+        // Add validation listeners
+        const formFields = document.querySelectorAll("input[required]");
+        formFields.forEach((field) => {
+          field.addEventListener("input", function () {
+            validateForm();
+            clearError(field.id);
+          });
+          field.addEventListener("blur", validateForm);
+        });
+
+        // Form submission
+        document
+          .getElementById("loginForm")
+          .addEventListener("submit", handleLogin);
+
+        // Social login handlers (placeholder)
+        document
+          .querySelector(".google-btn")
+          .addEventListener("click", function () {
+            alert("Google login functionality coming soon!");
+          });
+
+        document
+          .querySelector(".github-btn")
+          .addEventListener("click", function () {
+            alert("GitHub login functionality coming soon!");
+          });
+      });
+    </script>
+  </body>
+</html>

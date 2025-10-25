@@ -1,0 +1,195 @@
+body{
+    background: black;
+}
+.Logo{
+    width:400px;
+    margin-left:20vh;
+    margin-top:20vh;
+}
+.Heading-1{
+    color:white;
+    font-size:70px;
+    position:absolute;
+    top:5vh;
+    right:20px;
+    margin-right:20vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 700;
+}
+.Description{
+    color:white;
+    font-size:40px;
+    position:absolute;
+    top:20vh;
+    right:20px;
+    margin-right:62vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 700;
+}
+.Button-Group{
+    position: absolute;
+    top:40vh;
+    right:30px;
+    margin-right:55vh;
+    display: flex;
+    flex-direction: column;
+    gap:20px;
+}
+#SignIn-Google{
+    padding:10px;
+    border:none;
+    border-radius:20px;
+    background-color: aliceblue;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    cursor: pointer;
+    transition:all 0.3 ease;
+    width: fit-content;
+    overflow:hidden;
+}
+#SignIn-Google:hover{
+    padding: 10px 20px 10px 50px;
+    box-shadow:0 4px 8px rgba(255, 255,255,0.2);
+}
+#SignIn-Google img{
+    width:30px;
+    height:20px;
+    opacity:0;
+    transform: translate(-30px);
+    position:absolute;
+    left:15px;
+    transition:all 0.3 ease;
+}
+#SignIn-Google:hover img{
+    opacity:1;
+    transform: translateX(0);
+}
+#SignIn-Apple{
+    padding:10px;
+    border:none;
+    border-radius:20px;
+    background-color: rgb(252, 250, 249);
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    cursor: pointer;
+    transition:all 0.3 ease;
+    width: fit-content;
+    overflow: hidden;
+}
+#SignIn-Apple:hover{
+    padding: 10px 20px 10px 50px;
+    box-shadow:0 4px 8px rgba(255, 255,255,0.2);
+}
+#SignIn-Apple img{
+    width:30px;
+    height:30px;
+    opacity:0;
+    transform: translate(-30px);
+    position:absolute;
+    left:15px;
+    transition:all 0.3 ease;
+}
+#SignIn-Apple:hover img{
+    opacity:1;
+    transform: translateX(0);
+}
+
+#Create-Account{
+    padding:10px;
+    border:none;
+    border-radius:20px;
+    background-color: rgb(29, 155, 240);
+    color:white;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    cursor: pointer;
+    transition:all 0.3 ease;
+    width: fit-content;
+}
+#Create-Account:hover{
+    transform: scale(1.05);
+    box-shadow:0 4px 8px rgba(255, 255,255,0.2);
+}
+.SignIn-text{
+    color: white;
+    font-size: 20px;
+    font-weight: 600;
+}
+#SignIn{
+    background-color: black;
+    color: white;
+    border: 1px solid white;
+    border-radius: 20px;
+    padding:10px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 2px 4px 3px rgba(255, 255,255,0.2);
+    transition: all 0.3 ease;
+}
+#SignIn:hover{
+    transform: scale(1.05);
+}
+.footer{
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right:0;
+    background-color: black;
+    padding: 20px 0;
+    
+}
+.footer-content{
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display:flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+    align-items: center;
+
+}
+
+    
+.footer-content a{
+    color:#71767b;
+    text-decoration: none;
+    font-size: 13px;
+    transition: color 0.3 ease;
+}
+.footer-content a{
+    color:white;
+}
+.footer-content .separator{
+    color: #71767b;
+    font-size: 13px;
+}
+.Create{
+    text-decoration: none;
+}
+@media (max-width: 768px){
+    .Heading-1{
+        font-size: 50px;
+        margin-right: 10vh;
+        text-align: center;
+    }
+    .Description{
+        font-size: 30px;
+        margin-right: 20vh;
+        text-align: center;
+    }
+    .Button-Group{
+        margin-right: 20vh;
+        align-items: center;
+    }
+    .Logo{
+        width:300px;
+        margin-left:10vh;
+        margin-top:10vh;
+    }
+}
+
