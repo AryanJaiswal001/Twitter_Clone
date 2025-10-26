@@ -508,16 +508,6 @@
           if (data.success) {
             console.log("✅ Tweet posted successfully!");
 
-            const newTweet = {
-              _id: data.data.tweet._id,
-              content: content,
-              author: currentUser,
-              createdAt: new Date().toISOString(),
-              likes: 0,
-              retweets: 0,
-              comments: 0,
-            };
-
             // Reset composer
             textarea.value = "";
             charText.textContent = "280";
@@ -555,6 +545,7 @@
         console.log("✅ Tweet added to feed");
       }
 
+      //Create tweet HTML
       function createTweetHTML(tweet) {
         const author = tweet.author || currentUser;
         const authorName = author.fullName || author.fullname || "Unknown User";
@@ -567,10 +558,25 @@
         const isOwnTweet = currentUser && tweet.author._id === currentUser._id;
 
         //Check if tweet liked/retweeted by same user
-        const isLiked = tweet.likes && tweet.likes.includes(currentUser?._id);
+        const isLiked =
+          Array.isArray(tweet.likes) &&
+          tweet.likes.some(
+            (like) =>
+              (typeof like === "string" ? like : like._id) === currentUser?._id
+          );
         const isRetweeted =
-          tweet.retweets && tweet.retweets.includes(currentUser?._id);
+          Array.isArray(tweet.retweets) &&
+          tweet.retweets.some(
+            (retweet) =>
+              (typeof retweet === "string" ? retweet : retweet._id) ===
+              currentUser._id
+          );
 
+          //Get proper counts
+          const likesCount=Array.isArray(tweet.likes)? tweet.likes.length: 0;
+          const retweetsCount=Array.isArray(tweet.retweets)?tweet.retweets.length:0;
+          const repliesCount=tweet.replies||0;
+          const viewsCount=tweet.views||0;
         return `
       <div class="post-item" data-tweet-id="${tweet._id}">
         <img src="${authorAvatar}" alt="Profile" class="profile-pic" />
@@ -597,31 +603,31 @@
           </div>
           <p class="post-text">${safeContent}</p>
           <div class="post-stats">
-            <div class="stat-item">
+            <div class="stat-item comment-btn" onclick="openReplyModal('${tweet._id}')" style="cursor: pointer;">
               <i class="fa-regular fa-comment"></i>
-              <span>${tweet.replies || 0}</span>
+              <span>${repliesCount}</span>
             </div>
-            <div class="stat-item" onclick="likeTweet('${
+            <div class="stat-item retweet-btn"  onclick="retweetTweet('${
               tweet._id
             }')" style="cursor:pointer; ${
           isRetweeted ? "color:#00ba7c;" : " "
         }">
               <i class="fa-solid fa-retweet"></i>
               <span>${
-                Array.isArray(tweet.retweets) ? tweet.retweets.length : 0
+                retweetsCount
               }</span>
               </div>
             <div class="stat-item" onclick="likeTweet('${
               tweet._id
             }')" style="cursor: pointer; ${isLiked ? "color: #f91880;" : ""}">
             <i class="fa-${isLiked ? "solid" : "regular"} fa-heart"></i>
-            <span>${Array.isArray(tweet.likes) ? tweet.likes.length : 0}</span>
+            <span>${likesCount}</span>
             </div>
-            <div class="stat-item">
+            <div class="stat-item style="cursor:pointer;">
               <i class="fa-regular fa-chart-bar"></i>
-              <span>${tweet.views || 0}</span>
+              <span>${viewsCount}</span>
             </div>
-            <div class="stat-item">
+            <div class="stat-item" style="cursor:pointer;">
               <i class="fa-regular fa-share-from-square"></i>
             </div>
           </div>
@@ -725,7 +731,7 @@
             );
             if (tweetElement) {
               const likeBtn = tweetElement.querySelector(
-                ".stat-item:nth-child(3)"
+                ".stat-item.like-btn"
               );
               const likeIcon = likeBtn.querySelector("i");
               const likeCount = likeBtn.querySelector("span");
@@ -743,7 +749,7 @@
 
               // Update count
               likeCount.textContent = data.data.likesCount;
-              console.log("✅ Like UI updated");
+              console.log(`Like UI updated- count: ${data.data.likesCount}`);
             }
           } else {
             throw new Error(data.message);
@@ -782,7 +788,7 @@
             );
             if (tweetElement) {
               const retweetBtn = tweetElement.querySelector(
-                ".stat-item:nth-child(2)"
+                ".stat-item.retweet-btn"
               );
               const retweetCount = retweetBtn.querySelector("span");
 
@@ -795,7 +801,7 @@
 
               //Update count
               retweetCount.textContent = data.data.retweetsCount;
-              console.log("✅ Retweet UI updated");
+              console.log(`✅ Retweet UI updated- Count: ${data.data.retweetsCount}`);
             }
           } else {
             throw new Error(data.message);
@@ -805,6 +811,111 @@
           alert("Failed to retweet. Please try again");
         }
       }
+
+      //Reply to tweet (OPEN MODAL - TO BE IMPLEMENTED LATER)
+      function openReplyModal(tweetId) {
+      console.log("Opening reply modal for tweet",tweetId);
+
+      //Create modal HTML
+      const modalHTML=`<div id="reply-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:9999;">
+        <div style="background: #000; border:1px solid:#2f3336; border-radius:16px;  width:90%; max-width:600px; padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+          <h3 style="color:#fff; margin:0;">Reply to tweet</h3>
+          <button onclick="closeReplyModal()" style="background:none; border:none; color: #fff; font-size:24px; cursor:pointer;">&times;</button>
+          </div>
+          <textarea id="reply-textarea" placeholder="Tweet your reply" style="width:100%; min-height:100px; background:#000; border:1px solid #2f3336; border-radius:8px; color:#fff; padding:12px; font-size:16px; resize:vertical;" maxlength="280"></textarea>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+            <span id="reply-char-count" style="color: #1da1f2;">280</span>
+            <button onclick="submitReply('${tweetId}')" style="background:#1da1f2; color:#fff; border:none; border-radius:20px; padding:10px 20px; font-weight:bold;cursor:pointer;">Reply</button>
+            </div>
+            </div>
+            </div>
+            `;
+
+            document.body.insertAdjacentHTML('beforeend',modalHTML);
+
+            //Setup character counter
+            const textarea=document.getElementById('reply-textarea');
+            const charCount=document.getElementById('reply-char-count');
+
+            textarea.addEventListener('input',function(){
+              const remaining=280-this.value.length;
+              charCount.textContent=remaining;
+
+              if(remaining){
+                charCount.style.color='#ff6b6b';
+              }
+              else if(remaining<20){
+                charCount.style.color='ffaa500';
+              }
+              else{
+                charCount.style.color='#1da1f2';
+              }
+            });
+
+            textarea.focus();
+          
+      }
+
+      function closeReplyModal(){
+        const modal=document.getElementById('reply-modal');
+        if(modal){
+          modal.remove();
+        }
+      }
+
+      //Submit reply
+      async function submitReply(tweetId){
+        console.log("Submitting reply to tweet",tweetId);
+
+        const textarea=document.getElementById('reply-textarea');
+        const content=textarea.value.trim();
+
+        if(!content){
+          alert("Please write something before replying");
+          return;
+        }
+
+        if(content.length>280){
+          alert("Reply exceeded character limit");
+          return;
+      }
+
+      try{
+        const token=localStorage.getItem("token");
+
+        const response=await fetch(`${API_BASE_URL}/api/tweets/${tweetId}/reply`,{
+          method:"POST",
+          headers:{
+            "Content-Type":"application/json",
+            Authorization:`Bearer ${token}`,
+          },
+          body:JSON.stringify({content}),
+        });
+
+        const data=await response.json();
+        console.log("Reply response",data);
+
+        if(data.success){
+          console.log("Reply posted successfully");
+
+          closeReplyModal();
+
+          alert("Reply posted successfully");
+
+          await loadTweets();
+        }
+        else{
+          throw new Error(data.message||"Failed to post reply");
+        }
+      
+      }
+      catch(error){
+        console.error("Error posting reply",error);
+        alert("Failed to post reply. Please try again");
+
+      }
+    }
 
       //Delete tweet
 
