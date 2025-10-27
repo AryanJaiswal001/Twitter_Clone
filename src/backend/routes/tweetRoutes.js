@@ -70,13 +70,27 @@ router.get("/", protect, async (req, res) => {
       parseInt(limit),
       parseInt(skip)
     );
-    console.log(`Found ${tweets.length} tweets`);
+    //Add reply count
+    const tweetsWithReplyCount = await Promise.all(
+      tweets.map(async(tweet)=>{
+        const replyCount=await Tweet.countDocuments({
+          replyTo:tweet._id,
+          isDeleted:false
+        });
+        return{
+          ...tweet.toObject(),
+          repliesCount:replyCount
+        };
+      })
+    );
+    console.log(`Found ${tweetsWithReplyCount.length} tweets`)
 
     res.json({
-      success: true,
-      count: tweets.length,
-      data: { tweets },
-    });
+      success:true,
+      count:tweetsWithReplyCount.length,
+      data:{tweets:tweetsWithReplyCount}
+    })
+
   } catch (error) {
     console.error("Error fetching tweets", error);
     res.status(500).json({

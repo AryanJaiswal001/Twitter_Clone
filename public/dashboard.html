@@ -545,8 +545,10 @@
         console.log("✅ Tweet added to feed");
       }
 
-      //Create tweet HTML
-      function createTweetHTML(tweet) {
+      // ============================================
+      // CREATE TWEET HTML
+      // ============================================
+      function createTweetHTML(tweet, isReply = false) {
         const author = tweet.author || currentUser;
         const authorName = author.fullName || author.fullname || "Unknown User";
         const authorHandle = author.username || "unknown";
@@ -554,15 +556,13 @@
         const timeAgo = getTimeAgo(new Date(tweet.createdAt));
         const safeContent = escapeHTML(tweet.content);
 
-        //Check if the current user owns the tweet
         const isOwnTweet = currentUser && tweet.author._id === currentUser._id;
 
-        //Check if tweet liked/retweeted by same user
         const isLiked =
           Array.isArray(tweet.likes) &&
           tweet.likes.some(
             (like) =>
-              (typeof like === "string" ? like : like._id) === currentUser?._id
+              (typeof like === "string" ? like : like._id) === currentUser._id
           );
         const isRetweeted =
           Array.isArray(tweet.retweets) &&
@@ -572,353 +572,237 @@
               currentUser._id
           );
 
-          //Get proper counts
-          const likesCount=Array.isArray(tweet.likes)? tweet.likes.length: 0;
-          const retweetsCount=Array.isArray(tweet.retweets)?tweet.retweets.length:0;
-          const repliesCount=tweet.replies||0;
-          const viewsCount=tweet.views||0;
+        const likesCount = Array.isArray(tweet.likes) ? tweet.likes.length : 0;
+        const retweetsCount = Array.isArray(tweet.retweets)
+          ? tweet.retweets.length
+          : 0;
+        const repliesCount = tweet.repliesCount || 0;
+        const viewsCount = tweet.views || 0;
+
+        // ✅ Add indent for replies
+        const replyClass = isReply ? "reply-tweet" : "";
+        const replyIcon = isReply
+          ? '<i class="fa-solid fa-reply" style="color:#536471; margin-right:8px;"></i>'
+          : "";
+
         return `
-      <div class="post-item" data-tweet-id="${tweet._id}">
-        <img src="${authorAvatar}" alt="Profile" class="profile-pic" />
-        <div class="post-content">
-          <div class="post-header">
-            <span class="username">${authorName}</span>
-            <span class="handle">@${authorHandle}</span>
-            <span class="timestamp">· ${timeAgo}</span>
-            ${
-              isOwnTweet
-                ? `
-            <div class="post-menu" onclick="deleteTweet('${tweet._id}')">
-            <i class="fa-solid fa-trash" style="color:#f91880; cursor:pointer;"title="Delete tweet"></i>
-            </div>`
-                : `
-            <div class="post-menu">
-              <i class="fa-solid fa-ellipsis"></i>
+          <div class="post-item ${replyClass}" data-tweet-id="${tweet._id}">
+            ${replyIcon}
+            <img src="${authorAvatar}" alt="Profile" class="profile-pic" />
+            <div class="post-content">
+              <div class="post-header">
+                <span class="username">${authorName}</span>
+                <span class="handle">@${authorHandle}</span>
+                <span class="timestamp">· ${timeAgo}</span>
+                ${
+                  isOwnTweet
+                    ? `
+                  <div class="post-menu" onclick="deleteTweet('${tweet._id}')" style="margin-left: auto;">
+                    <i class="fa-solid fa-trash" style="color:#f91880; cursor:pointer;" title="Delete tweet"></i>
+                  </div>
+                `
+                    : `
+                  <div class="post-menu" style="margin-left: auto;">
+                    <i class="fa-solid fa-ellipsis"></i>
+                  </div>
+                `
+                }
               </div>
-              `
-            }
-            <div class="post-menu">
-              <i class="fa-solid fa-ellipsis"></i>
-            </div>
-          </div>
-          <p class="post-text">${safeContent}</p>
-          <div class="post-stats">
-            <div class="stat-item comment-btn" onclick="openReplyModal('${tweet._id}')" style="cursor: pointer;">
-              <i class="fa-regular fa-comment"></i>
-              <span>${repliesCount}</span>
-            </div>
-            <div class="stat-item retweet-btn"  onclick="retweetTweet('${
-              tweet._id
-            }')" style="cursor:pointer; ${
-          isRetweeted ? "color:#00ba7c;" : " "
+              <p class="post-text">${safeContent}</p>
+              <div class="post-stats">
+                <div class="stat-item comment-btn" onclick="openReplyModal('${
+                  tweet._id
+                }')" style="cursor: pointer;">
+                  <i class="fa-regular fa-comment"></i>
+                  <span>${repliesCount}</span>
+                </div>
+                <div class="stat-item retweet-btn" onclick="retweetTweet('${
+                  tweet._id
+                }')" style="cursor:pointer; ${
+          isRetweeted ? "color:#00ba7c;" : ""
         }">
-              <i class="fa-solid fa-retweet"></i>
-              <span>${
-                retweetsCount
-              }</span>
+                  <i class="fa-solid fa-retweet"></i>
+                  <span>${retweetsCount}</span>
+                </div>
+                <div class="stat-item like-btn" onclick="likeTweet('${
+                  tweet._id
+                }')" style="cursor: pointer; ${
+          isLiked ? "color: #f91880;" : ""
+        }">
+                  <i class="fa-${isLiked ? "solid" : "regular"} fa-heart"></i>
+                  <span>${likesCount}</span>
+                </div>
+                <div class="stat-item" style="cursor: pointer;">
+                  <i class="fa-regular fa-chart-bar"></i>
+                  <span>${viewsCount}</span>
+                </div>
+                <div class="stat-item" style="cursor: pointer;">
+                  <i class="fa-regular fa-share-from-square"></i>
+                </div>
               </div>
-            <div class="stat-item" onclick="likeTweet('${
-              tweet._id
-            }')" style="cursor: pointer; ${isLiked ? "color: #f91880;" : ""}">
-            <i class="fa-${isLiked ? "solid" : "regular"} fa-heart"></i>
-            <span>${likesCount}</span>
-            </div>
-            <div class="stat-item style="cursor:pointer;">
-              <i class="fa-regular fa-chart-bar"></i>
-              <span>${viewsCount}</span>
-            </div>
-            <div class="stat-item" style="cursor:pointer;">
-              <i class="fa-regular fa-share-from-square"></i>
+              
+              ${
+                !isReply && repliesCount > 0
+                  ? `
+                <div class="view-replies-btn" onclick="toggleReplies('${
+                  tweet._id
+                }')" style="cursor:pointer; color:#1da1f2; font-size:14px; margin-top:12px; display:flex; align-items:center; gap:4px;">
+                  <i class="fa-solid fa-chevron-down" id="reply-chevron-${
+                    tweet._id
+                  }"></i>
+                  <span>View ${repliesCount} ${
+                      repliesCount === 1 ? "reply" : "replies"
+                    }</span>
+                </div>
+                <div class="replies-container" id="replies-${
+                  tweet._id
+                }" style="display:none; margin-top:16px;"></div>
+              `
+                  : ""
+              }
             </div>
           </div>
-        </div>
-      </div>
-    `;
+        `;
       }
 
-      //Load tweets from backend
+      // ============================================
+      // TOGGLE REPLIES VISIBILITY
+      // ============================================
+      async function toggleReplies(tweetId) {
+        console.log("👁️ Toggling replies for tweet:", tweetId);
 
-      async function loadTweets() {
-        console.log("Laoding tweets from backend...");
+        const repliesContainer = document.getElementById(`replies-${tweetId}`);
+        const chevron = document.getElementById(`reply-chevron-${tweetId}`);
 
-        const postsContainer = document.querySelector(".posts");
-
-        if (!postsContainer) {
-          console.error("Posts container not found");
+        if (!repliesContainer) {
+          console.error("❌ Replies container not found");
           return;
         }
-        //Show loading state
-        postsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#536471;">
-          <i class="fas fa-spinner fa-spin" style="font-size:32px;"></i>
-          <p style="margin-top:16px;">Loading tweets...</p>
-          </div>
-          `;
 
+        // If already loaded, just toggle visibility
+        if (repliesContainer.innerHTML.trim() !== "") {
+          if (repliesContainer.style.display === "none") {
+            repliesContainer.style.display = "block";
+            chevron.classList.remove("fa-chevron-down");
+            chevron.classList.add("fa-chevron-up");
+          } else {
+            repliesContainer.style.display = "none";
+            chevron.classList.remove("fa-chevron-up");
+            chevron.classList.add("fa-chevron-down");
+          }
+          return;
+        }
+
+        // Load replies from backend
         try {
-          const token = localStorage.getItem("token");
+          repliesContainer.innerHTML =
+            '<p style="color:#536471; padding:12px;">Loading replies...</p>';
+          repliesContainer.style.display = "block";
+          chevron.classList.remove("fa-chevron-down");
+          chevron.classList.add("fa-chevron-up");
 
-          const response = await fetch(`${API_BASE_URL}/api/tweets`, {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          });
+          const token = localStorage.getItem("token");
+          const response = await fetch(
+            `${API_BASE_URL}/api/tweets/${tweetId}/replies`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
           const data = await response.json();
-          console.log("Tweets response", data);
+          console.log("📦 Replies response:", data);
 
           if (data.success) {
-            const tweets = data.data.tweets;
-            console.log(`Loaded ${tweets.length} tweets`);
+            const replies = data.data.replies;
 
-            if (tweets.length === 0) {
-              //NO tweets yet
-              postsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#536471;">
-                    <i class="fas fa-feather-alt" style="font-size:48px; margin-bottom:16px;"></i>
-                    <h3 style='color:#e7e9ea; margin-bottom:8px;">No tweets yet</h3>
-                    <p>Be the first to post something</p>
-                    </div>
-                    ;`;
+            if (replies.length === 0) {
+              repliesContainer.innerHTML =
+                '<p style="color:#536471; padding:12px;">No replies yet</p>';
             } else {
-              //Clear laoding and display tweets
-              postsContainer.innerHTML = " ";
-              tweets.forEach((tweet) => {
-                const tweetHTML = createTweetHTML(tweet);
-                postsContainer.insertAdjacentHTML("beforeend", tweetHTML);
+              repliesContainer.innerHTML = "";
+              replies.forEach((reply) => {
+                const replyHTML = createTweetHTML(reply, true); // ✅ Pass isReply=true
+                repliesContainer.insertAdjacentHTML("beforeend", replyHTML);
               });
             }
           } else {
-            throw new Error(data.message || "Failed to load tweets");
-          }
-        } catch (error) {
-          console.error("Error loading tweets", error);
-          postsContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#f91880;">
-              <i class="fas fa-exclamation-circle" style="font-size:48px; margin-bottom:8px">Failed to load tweets</h3>
-                <p> ${error.message}</p>
-                <button onclick="loadTweets()" style="margin-top:16px; padding:10px 20px; background: #1da1f2; color:white; border:none;border-radius:20px;">
-                  Retry
-                  </button>
-                  </div>
-                  ;`;
-        }
-      }
-
-      //Like tweet
-
-      async function likeTweet(tweetId) {
-        console.log("❤️ Liking tweet:", tweetId);
-
-        try {
-          const token = localStorage.getItem("token");
-
-          // ✅ FIXED: Added missing slash before tweetId
-          const response = await fetch(
-            `${API_BASE_URL}/api/tweets/${tweetId}/like`,
-            {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-
-          const data = await response.json();
-          console.log("📦 Like response:", data);
-
-          if (data.success) {
-            // Update the like button in UI
-            const tweetElement = document.querySelector(
-              `[data-tweet-id="${tweetId}"]`
-            );
-            if (tweetElement) {
-              const likeBtn = tweetElement.querySelector(
-                ".stat-item.like-btn"
-              );
-              const likeIcon = likeBtn.querySelector("i");
-              const likeCount = likeBtn.querySelector("span");
-
-              // Toggle heart icon
-              if (data.data.isLiked) {
-                likeIcon.classList.remove("fa-regular");
-                likeIcon.classList.add("fa-solid");
-                likeBtn.style.color = "#f91880";
-              } else {
-                likeIcon.classList.remove("fa-solid");
-                likeIcon.classList.add("fa-regular");
-                likeBtn.style.color = "";
-              }
-
-              // Update count
-              likeCount.textContent = data.data.likesCount;
-              console.log(`Like UI updated- count: ${data.data.likesCount}`);
-            }
-          } else {
             throw new Error(data.message);
           }
         } catch (error) {
-          console.error("Error liking tweet", error);
-          alert("Failed to like tweet,Please try again");
+          console.error("❌ Error loading replies:", error);
+          repliesContainer.innerHTML =
+            '<p style="color:#f91880; padding:12px;">Failed to load replies</p>';
         }
       }
 
-      //Retweet
-      async function retweetTweet(tweetId) {
-        console.log("Retweeting tweet", tweetId);
+      // ============================================
+      // SUBMIT REPLY
+      // ============================================
+      async function submitReply(tweetId) {
+        console.log("💬 Submitting reply to tweet:", tweetId);
+
+        const textarea = document.getElementById("reply-textarea");
+        const content = textarea.value.trim();
+
+        if (!content) {
+          alert("Please write something before replying!");
+          return;
+        }
+
+        if (content.length > 280) {
+          alert("Reply exceeds 280 character limit!");
+          return;
+        }
 
         try {
           const token = localStorage.getItem("token");
 
           const response = await fetch(
-            `${API_BASE_URL}/api/tweets/${tweetId}/retweet`,
+            `${API_BASE_URL}/api/tweets/${tweetId}/reply`,
             {
               method: "POST",
               headers: {
+                "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
               },
+              body: JSON.stringify({ content }),
             }
           );
 
           const data = await response.json();
-          console.log("Retweet response", data);
+          console.log("📦 Reply response:", data);
 
           if (data.success) {
-            //Update tweet button
+            console.log("✅ Reply posted successfully!");
+            closeReplyModal();
 
-            const tweetElement = document.querySelector(
-              `[data-tweet-id="${tweetId}"]`
+            // ✅ Reload tweets to update reply count
+            await loadTweets();
+
+            // ✅ Auto-expand replies for the tweet
+            const repliesContainer = document.getElementById(
+              `replies-${tweetId}`
             );
-            if (tweetElement) {
-              const retweetBtn = tweetElement.querySelector(
-                ".stat-item.retweet-btn"
-              );
-              const retweetCount = retweetBtn.querySelector("span");
-
-              //Toggle retweet style
-              if (data.data.isRetweeted) {
-                retweetBtn.style.color = "#00ba7c";
-              } else {
-                retweetBtn.style.color = " ";
-              }
-
-              //Update count
-              retweetCount.textContent = data.data.retweetsCount;
-              console.log(`✅ Retweet UI updated- Count: ${data.data.retweetsCount}`);
+            if (repliesContainer) {
+              repliesContainer.innerHTML = ""; // Clear cached replies
+              await toggleReplies(tweetId); // Reload and show
             }
+
+            alert("Reply posted successfully!");
           } else {
-            throw new Error(data.message);
+            throw new Error(data.message || "Failed to post reply");
           }
         } catch (error) {
-          console.error("Error retweeting", error);
-          alert("Failed to retweet. Please try again");
+          console.error("❌ Error posting reply:", error);
+          alert("Failed to post reply. Please try again.");
         }
       }
 
-      //Reply to tweet (OPEN MODAL - TO BE IMPLEMENTED LATER)
-      function openReplyModal(tweetId) {
-      console.log("Opening reply modal for tweet",tweetId);
-
-      //Create modal HTML
-      const modalHTML=`<div id="reply-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); display:flex; align-items:center; justify-content:center; z-index:9999;">
-        <div style="background: #000; border:1px solid:#2f3336; border-radius:16px;  width:90%; max-width:600px; padding:20px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
-          <h3 style="color:#fff; margin:0;">Reply to tweet</h3>
-          <button onclick="closeReplyModal()" style="background:none; border:none; color: #fff; font-size:24px; cursor:pointer;">&times;</button>
-          </div>
-          <textarea id="reply-textarea" placeholder="Tweet your reply" style="width:100%; min-height:100px; background:#000; border:1px solid #2f3336; border-radius:8px; color:#fff; padding:12px; font-size:16px; resize:vertical;" maxlength="280"></textarea>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
-            <span id="reply-char-count" style="color: #1da1f2;">280</span>
-            <button onclick="submitReply('${tweetId}')" style="background:#1da1f2; color:#fff; border:none; border-radius:20px; padding:10px 20px; font-weight:bold;cursor:pointer;">Reply</button>
-            </div>
-            </div>
-            </div>
-            `;
-
-            document.body.insertAdjacentHTML('beforeend',modalHTML);
-
-            //Setup character counter
-            const textarea=document.getElementById('reply-textarea');
-            const charCount=document.getElementById('reply-char-count');
-
-            textarea.addEventListener('input',function(){
-              const remaining=280-this.value.length;
-              charCount.textContent=remaining;
-
-              if(remaining){
-                charCount.style.color='#ff6b6b';
-              }
-              else if(remaining<20){
-                charCount.style.color='ffaa500';
-              }
-              else{
-                charCount.style.color='#1da1f2';
-              }
-            });
-
-            textarea.focus();
-          
-      }
-
-      function closeReplyModal(){
-        const modal=document.getElementById('reply-modal');
-        if(modal){
-          modal.remove();
-        }
-      }
-
-      //Submit reply
-      async function submitReply(tweetId){
-        console.log("Submitting reply to tweet",tweetId);
-
-        const textarea=document.getElementById('reply-textarea');
-        const content=textarea.value.trim();
-
-        if(!content){
-          alert("Please write something before replying");
-          return;
-        }
-
-        if(content.length>280){
-          alert("Reply exceeded character limit");
-          return;
-      }
-
-      try{
-        const token=localStorage.getItem("token");
-
-        const response=await fetch(`${API_BASE_URL}/api/tweets/${tweetId}/reply`,{
-          method:"POST",
-          headers:{
-            "Content-Type":"application/json",
-            Authorization:`Bearer ${token}`,
-          },
-          body:JSON.stringify({content}),
-        });
-
-        const data=await response.json();
-        console.log("Reply response",data);
-
-        if(data.success){
-          console.log("Reply posted successfully");
-
-          closeReplyModal();
-
-          alert("Reply posted successfully");
-
-          await loadTweets();
-        }
-        else{
-          throw new Error(data.message||"Failed to post reply");
-        }
-      
-      }
-      catch(error){
-        console.error("Error posting reply",error);
-        alert("Failed to post reply. Please try again");
-
-      }
-    }
-
-      //Delete tweet
-
+      // ============================================
+      // DELETE TWEET
+      // ============================================
       async function deleteTweet(tweetId) {
         console.log("Deleting tweet", tweetId);
 
