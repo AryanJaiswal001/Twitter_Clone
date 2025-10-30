@@ -8,14 +8,14 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <link rel="stylesheet" href="../src/css/components.css" />
+    <link rel="stylesheet" href="/src/css/components.css" />
   </head>
   <body>
     <div class="container">
       <div class="login-card">
         <!-- Header -->
         <div class="header">
-          <img src="../src/assets/logo.png" alt="Twitter Logo" class="logo" />
+          <img src="/src/assets/logo.png" alt="Twitter Logo" class="logo" />
           <h1>Sign in to Twitter Clone</h1>
           <p>Welcome back! Please sign in to your account</p>
         </div>
@@ -191,14 +191,25 @@
           });
 
           const data = await response.json();
+          console.log("📦 Login response:", data);
 
           if (response.ok && data.success) {
             // Store token in localStorage
+            console.log("💾 Saving token to localStorage...");
             localStorage.setItem("token", data.data.token);
             localStorage.setItem("user", JSON.stringify(data.data.user));
 
+            // Verify token was saved
+            const savedToken = localStorage.getItem("token");
+            console.log("✅ Token saved successfully:", !!savedToken);
+            console.log(
+              "🔑 Token (first 20 chars):",
+              savedToken ? savedToken.substring(0, 20) + "..." : "null"
+            );
+
             // Show success message
             console.log("✅ Login successful:", data.data.user);
+            console.log("🔄 Redirecting to dashboard...");
 
             // Redirect to dashboard
             window.location.href = "/dashboard";

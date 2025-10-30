@@ -1,6 +1,10 @@
+import dotenv from "dotenv";
 import { v2 as cloudinary } from "cloudinary";
 import { CloudinaryStorage } from "multer-storage-cloudinary";
 import multer from "multer";
+
+// Load environment variables FIRST
+dotenv.config();
 
 console.log("🔧 Configuring Cloudinary...");
 

@@ -6,42 +6,63 @@ let currentUser = null;
 // Track which tweet is being replied to
 let replyingToTweetId = null;
 
-console.log("🚀 Dashboard script loaded");
+console.log(
+  "🚀 Dashboard script loaded - v8 (MEDIA DISPLAY FIXED) - " +
+    new Date().toLocaleTimeString()
+);
+console.log("🔧 API Base URL:", API_BASE_URL);
 
 // ============================================
 // AUTHENTICATION
 // ============================================
 async function checkAuthentication() {
   console.log("🔐 Checking authentication...");
+  console.log("📍 Current URL:", window.location.href);
+
   const token = localStorage.getItem("token");
+  console.log("🔑 Token exists:", !!token);
+  console.log(
+    "🔑 Token value (first 20 chars):",
+    token ? token.substring(0, 20) + "..." : "null"
+  );
 
   if (!token) {
-    console.log("❌ No token found");
+    console.log("❌ No token found - redirecting to login");
     redirectToLogin();
     return false;
   }
 
-  console.log("✅ Token found");
+  console.log("✅ Token found - verifying with server...");
 
   try {
+    console.log("📡 Fetching:", `${API_BASE_URL}/api/auth/me`);
     const response = await fetch(`${API_BASE_URL}/api/auth/me`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
     });
 
+    console.log("📥 Response status:", response.status);
     const data = await response.json();
-    console.log("📦 Response:", data);
+    console.log("📦 Response data:", data);
 
     if (!data.success) {
+      console.error("❌ Server returned success=false");
       throw new Error("Invalid token");
     }
 
     currentUser = data.data.user;
-    console.log("✅ Authentication successful! User:", currentUser.username);
+    console.log("✅ Authentication successful!");
+    console.log("👤 User data:", {
+      id: currentUser._id,
+      username: currentUser.username,
+      email: currentUser.email,
+      fullName: currentUser.fullName,
+    });
     return true;
   } catch (error) {
     console.error("❌ Authentication failed:", error);
+    console.error("❌ Error details:", error.message);
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     redirectToLogin();
@@ -59,22 +80,33 @@ function redirectToLogin() {
 // ============================================
 function loadUserData() {
   console.log("📝 Loading user data...");
+  console.log("👤 Current user:", currentUser);
+
   if (!currentUser) {
-    console.log("⚠️ No user data available");
+    console.error("❌ No user data available!");
     return;
   }
 
   const userName = document.querySelector(".user-info .user-name");
   const userHandle = document.querySelector(".user-info .user-handle");
 
+  console.log("🔍 Found userName element:", !!userName);
+  console.log("🔍 Found userHandle element:", !!userHandle);
+
   if (userName) {
-    userName.textContent = currentUser.fullName || currentUser.fullname;
-    console.log("✅ Updated user name:", userName.textContent);
+    const displayName =
+      currentUser.fullName || currentUser.fullname || currentUser.username;
+    userName.textContent = displayName;
+    console.log("✅ Updated user name to:", displayName);
+  } else {
+    console.warn("⚠️ .user-info .user-name element not found!");
   }
 
   if (userHandle) {
     userHandle.textContent = `@${currentUser.username}`;
-    console.log("✅ Updated user handle:", userHandle.textContent);
+    console.log("✅ Updated user handle to: @" + currentUser.username);
+  } else {
+    console.warn("⚠️ .user-info .user-handle element not found!");
   }
 
   console.log("✅ User data loaded successfully");
@@ -150,12 +182,11 @@ async function postTweet() {
   const content = textarea.value.trim();
 
   //Allow tweets with only media
-  if(!content && selectedMediaFiles.length === 0)
-    {
-      alert("Please write something or attach media before posting!");
-      return;
-    }
-  
+  if (!content && selectedMediaFiles.length === 0) {
+    alert("Please write something or attach media before posting!");
+    return;
+  }
+
   if (!content) {
     alert("Please write something before posting!");
     return;
@@ -171,14 +202,14 @@ async function postTweet() {
 
   try {
     //Step 1:Upload media first (in any)
-    let mediaData=[];
-    if(selectedMediaFiles.length > 0){
-      postButton.textContent="Uploading media...";
-      mediaData=await uploadMediaToServer();
-      console.log('Media uploaded',mediaData.length,'files');
+    let mediaData = [];
+    if (selectedMediaFiles.length > 0) {
+      postButton.textContent = "Uploading media...";
+      mediaData = await uploadMediaToServer();
+      console.log("Media uploaded", mediaData.length, "files");
     }
     //Step-2 Post tweet with media URL's
-    postButton.textContent="Posting tweet...";
+    postButton.textContent = "Posting tweet...";
     const token = localStorage.getItem("token");
 
     const response = await fetch(`${API_BASE_URL}/api/tweets`, {
@@ -187,7 +218,7 @@ async function postTweet() {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ content,media:mediaData }),
+      body: JSON.stringify({ content, media: mediaData }),
     });
 
     const data = await response.json();
@@ -202,10 +233,9 @@ async function postTweet() {
       postButton.textContent = "Post";
 
       //Clear media
-      selectedMediaFiles=[];
-      document.getElementById('media-preview-container').style.display='none';
-      document.getElementById('media-upload').value='';
-
+      selectedMediaFiles = [];
+      document.getElementById("media-preview-container").style.display = "none";
+      document.getElementById("media-upload").value = "";
 
       await loadTweets();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -220,8 +250,6 @@ async function postTweet() {
   }
 }
 
-
-
 // ============================================
 // CREATE TWEET HTML
 // ============================================
@@ -229,72 +257,62 @@ function createTweetHTML(tweet, isReply = false) {
   const author = tweet.author || currentUser;
   const authorName = author.fullName || author.fullname || "Unknown User";
   const authorHandle = author.username || "unknown";
-  const authorAvatar = author.avatar || "../src/assets/profile.jpg";
+  // Use a data URL for a simple colored circle avatar as fallback
+  const authorAvatar =
+    author.avatar ||
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%231d9bf0'/%3E%3Ctext x='50' y='50' font-size='50' fill='white' text-anchor='middle' dominant-baseline='central' font-family='Arial'%3E👤%3C/text%3E%3C/svg%3E";
   const timeAgo = getTimeAgo(new Date(tweet.createdAt));
   const safeContent = escapeHTML(tweet.content);
 
   const isOwnTweet = currentUser && tweet.author._id === currentUser._id;
 
-  let mediaHTML='';
-  if(tweet.media && tweet.media.length>0){
-    const mediaCount=tweet.media.length;
-    const gridClass=mediaCount===1 ? 'single':mediaCount===2 ? 'double':'multiple';
+  // Generate media HTML if present
+  let mediaHTML = "";
+  if (tweet.media && tweet.media.length > 0) {
+    const mediaCount = tweet.media.length;
+    const gridClass =
+      mediaCount === 1 ? "single" : mediaCount === 2 ? "double" : "multiple";
 
-    mediaHTML=`
-    <div class="tweet-media ${gridClass}" style="margin-top:12px; display:grid; gap:2px;border-radius:16px;overflow:hidden; ${mediaCount===1 ? 'grid-template-columns: 1fr;':
-      mediaCount===2 ? 'grid-template-columns 1fr 1fr;':
-      'grid-template-columns:1fr 1fr; grid-template-rows: 1fr 1fr'
+    mediaHTML = `
+    <div class="tweet-media ${gridClass}" style="margin-top:12px; display:grid; gap:2px; border-radius:16px; overflow:hidden; ${
+      mediaCount === 1
+        ? "grid-template-columns: 1fr;"
+        : mediaCount === 2
+        ? "grid-template-columns: 1fr 1fr;"
+        : "grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr;"
     }">
-    ${tweet.media.map((media,index)=>{
-      if(media.type==='image'){
-        return `
-        <div style="${mediaCount>2 && index===0 ? 'grid-row:span 2;':''}position:relative;">
-        <img src="${media.url}" alt="${media.altText || 'Tweet image'}"
-        style="width:100%; height:100%; object-fit:cover; cursor:pointer;"
-        onclick="openMediaModal('${media.url}','image')"/>
+    ${tweet.media
+      .map((media, index) => {
+        if (media.type === "image") {
+          return `
+        <div style="${
+          mediaCount > 2 && index === 0 ? "grid-row: span 2; " : ""
+        }position: relative;">
+          <img src="${media.url}" alt="${media.altText || "Tweet image"}"
+            style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
+            onclick="openMediaModal('${media.url}', 'image')" />
         </div>
         `;
-      }
-      return '';
-    }).join(' ')}
+        } else if (media.type === "video") {
+          return `
+        <div style="${
+          mediaCount > 2 && index === 0 ? "grid-row: span 2; " : ""
+        }position: relative;">
+          <video src="${media.url}" controls
+            style="width: 100%; height: 100%; object-fit: cover;">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+        `;
+        }
+        return "";
+      })
+      .join("")}
     </div>
     `;
   }
-  return `
-    <div class="post-item ${replyClass}" data-tweet-id="${tweet._id}">
-      ${replyIcon}
-      <img src="${authorAvatar}" alt="Profile" class="profile-pic" />
-      <div class="post-content">
-        <div class="post-header">
-          <span class="username">${authorName}</span>
-          <span class="handle">@${authorHandle}</span>
-          <span class="timestamp">· ${timeAgo}</span>
-          ${
-            isOwnTweet
-              ? `
-            <div class="post-menu" onclick="deleteTweet('${tweet._id}')" style="margin-left: auto;">
-              <i class="fa-solid fa-trash" style="color:#f91880; cursor:pointer;" title="Delete tweet"></i>
-            </div>
-          `
-              : `
-            <div class="post-menu" style="margin-left: auto;">
-              <i class="fa-solid fa-ellipsis"></i>
-            </div>
-          `
-          }
-        </div>
-        ${content ? `<p class="post-text">${safeContent}</p>` : ''}
-         ${mediaHTML}
-        <!-- rest of the tweet stats -->
-        ...
-      </div>
-    </div>
-  `;
-}
 
-
-
-
+  // Calculate tweet stats and state
   const isLiked =
     Array.isArray(tweet.likes) &&
     tweet.likes.some(
@@ -394,21 +412,29 @@ function createTweetHTML(tweet, isReply = false) {
       </div>
     </div>
   `;
-
+}
 
 // ============================================
 // LOAD TWEETS
 // ============================================
 async function loadTweets() {
   console.log("📡 Loading tweets from backend...");
+  console.log("🔗 API URL:", `${API_BASE_URL}/api/tweets`);
 
   const postsContainer = document.querySelector(".posts");
+  console.log("🔍 Posts container found:", !!postsContainer);
 
   if (!postsContainer) {
     console.error("❌ Posts container not found!");
+    console.error("❌ Available elements:", {
+      posts: document.querySelectorAll(".posts").length,
+      mainContent: document.querySelectorAll(".main-content").length,
+      container: document.querySelectorAll(".container").length,
+    });
     return;
   }
 
+  console.log("⏳ Showing loading spinner...");
   postsContainer.innerHTML = `
     <div style="text-align:center; padding:40px; color:#536471;">
       <i class="fas fa-spinner fa-spin" style="font-size:32px;"></i>
@@ -418,7 +444,12 @@ async function loadTweets() {
 
   try {
     const token = localStorage.getItem("token");
+    console.log(
+      "🔑 Using token (first 20 chars):",
+      token ? token.substring(0, 20) + "..." : "null"
+    );
 
+    console.log("📡 Fetching tweets...");
     const response = await fetch(`${API_BASE_URL}/api/tweets`, {
       method: "GET",
       headers: {
@@ -426,6 +457,7 @@ async function loadTweets() {
       },
     });
 
+    console.log("📥 Response status:", response.status);
     const data = await response.json();
     console.log("📦 Tweets response:", data);
 
@@ -434,6 +466,7 @@ async function loadTweets() {
       console.log(`✅ Loaded ${tweets.length} tweets`);
 
       if (tweets.length === 0) {
+        console.log("ℹ️ No tweets found - showing empty state");
         postsContainer.innerHTML = `
           <div style="text-align:center; padding:40px; color:#536471;">
             <i class="fas fa-feather-alt" style="font-size:48px; margin-bottom:16px;"></i>
@@ -442,17 +475,26 @@ async function loadTweets() {
           </div>
         `;
       } else {
+        console.log("✅ Rendering tweets...");
         postsContainer.innerHTML = "";
-        tweets.forEach((tweet) => {
+        tweets.forEach((tweet, index) => {
+          console.log(`  Rendering tweet ${index + 1}/${tweets.length}:`, {
+            id: tweet._id,
+            author: tweet.author?.username,
+            content: tweet.content?.substring(0, 50),
+          });
           const tweetHTML = createTweetHTML(tweet);
           postsContainer.insertAdjacentHTML("beforeend", tweetHTML);
         });
+        console.log("✅ All tweets rendered successfully");
       }
     } else {
+      console.error("❌ Server returned success=false:", data.message);
       throw new Error(data.message || "Failed to load tweets");
     }
   } catch (error) {
     console.error("❌ Error loading tweets:", error);
+    console.error("❌ Error stack:", error.stack);
     postsContainer.innerHTML = `
       <div style="text-align:center; padding:40px; color:#f91880;">
         <i class="fas fa-exclamation-circle" style="font-size:48px; margin-bottom:16px;"></i>
@@ -846,65 +888,89 @@ function setupMediaUpload() {
 
   mediaInput.addEventListener("change", function (e) {
     const files = Array.from(e.target.files);
-    console.log(`${files.length} files selected`);
+    console.log(`📁 ${files.length} files selected`);
 
-    //Validate file count
-    if (selectedMediaFiles + files.length > 4) {
+    // Validate file count
+    if (selectedMediaFiles.length + files.length > 4) {
       alert("Maximum 4 media files allowed");
+      e.target.value = ""; // Reset input
       return;
     }
 
+    // Validate each file
     for (const file of files) {
-      if (!file.type.startsWith("image/") && !file.type.startsWith("video/"))
+      if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
         alert("Only images and videos are allowed");
-      return;
+        e.target.value = ""; // Reset input
+        return;
+      }
+
+      const maxSize = file.type.startsWith("video/") ? 50 : 5;
+      if (file.size > maxSize * 1024 * 1024) {
+        alert(
+          `${
+            file.type.startsWith("video/") ? "Video" : "Image"
+          } file too large. Max size: ${maxSize}MB`
+        );
+        e.target.value = ""; // Reset input
+        return;
+      }
     }
 
-    const maxSize = file.type.startsWith("video/") ? 50 : 5;
-    if (file.size > maxSize * 1024 * 1024) {
-      alert(`${file.type.startsWith("video/") ? "Video" : "Image"} file`);
-      return;
-    }
-    //Add files to selected array
+    // Add files to selected array
     selectedMediaFiles = [...selectedMediaFiles, ...files];
+    console.log(`✅ Total media files: ${selectedMediaFiles.length}`);
 
-    //show previews
-    displayMediaPreview();
-    previewContainer.style.display = "block";
+    // Show previews
+    displayMediaPreviews();
+    if (previewContainer) {
+      previewContainer.style.display = "block";
+    }
+
+    // Reset the input so same file can be selected again
+    e.target.value = "";
   });
 
-  console.log("Media upload successful");
+  console.log("✅ Media upload setup complete");
 }
 
 //Media preview
-function displayMediaPreview() {
+function displayMediaPreviews() {
+  console.log("🖼️ Displaying media previews...");
   const previewsDiv = document.getElementById("media-previews");
+
+  if (!previewsDiv) {
+    console.error("❌ media-previews element not found!");
+    return;
+  }
+
   previewsDiv.innerHTML = "";
+  console.log(`📸 Creating previews for ${selectedMediaFiles.length} files`);
 
   selectedMediaFiles.forEach((file, index) => {
     const reader = new FileReader();
 
     reader.onload = function (e) {
+      console.log(`✅ Loaded preview for file ${index + 1}`);
       const previewItem = document.createElement("div");
       previewItem.style.cssText =
-        "position: relative; border-radius:12px; overflow-hidden; aspect-ratio-1;";
+        "position: relative; border-radius:12px; overflow:hidden; aspect-ratio:1;";
 
       if (file.type.startsWith("image/")) {
         previewItem.innerHTML = `
-        <img src="${e.target.result}" style="width=100%; height:100%; object-fit:cover;"/>
+        <img src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;"/>
         <button onclick="removeMedia(${index})" style="position:absolute;top:4px;right:4px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-        <i class="fa-solid fa-xmark></i>
+        <i class="fa-solid fa-xmark"></i>
         </button>`;
       } else if (file.type.startsWith("video/")) {
         previewItem.innerHTML = `
-        <video src="${e.target.result}" style="width=100%; height:100%; object-fit:cover;"/>
+        <video src="${e.target.result}" style="width:100%; height:100%; object-fit:cover;"/>
         <button onclick="removeMedia(${index})" style="position:absolute;top:4px;right:4px; background: rgba(0,0,0,0.7); color: white; border: none; border-radius: 50%; width: 28px; height: 28px; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-        <i class="fa-solid fa-xmark></i>
+        <i class="fa-solid fa-xmark"></i>
         </button>
          <div style="position: absolute; bottom: 8px; left: 8px; background: rgba(0,0,0,0.7); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
             <i class="fa-solid fa-video"></i> Video
-          </div>`
-          ;
+          </div>`;
       }
       previewsDiv.appendChild(previewItem);
     };
@@ -913,57 +979,56 @@ function displayMediaPreview() {
 }
 
 //Remove media from preview
-function removeMedia(index){
-  console.log('Removing media at index',index);
-  selectedMediaFiles.splice(index,1);
+function removeMedia(index) {
+  console.log("🗑️ Removing media at index", index);
+  selectedMediaFiles.splice(index, 1);
 
-  if(selectedMediaFiles.length===0)
-  {
-    document.getElementById('media-preview-container').style.display='none';
+  if (selectedMediaFiles.length === 0) {
+    const previewContainer = document.getElementById("media-preview-container");
+    if (previewContainer) {
+      previewContainer.style.display = "none";
+    }
   }
-  displayMediaPreview();
+  displayMediaPreviews();
 }
 
 //Upload media to server
-async function uploadMediaToServer(){
-  if(selectedMediaFiles.length===0){
-    return[];
+async function uploadMediaToServer() {
+  if (selectedMediaFiles.length === 0) {
+    return [];
   }
-  console.log('Uploading',selectedMediaFiles.length,'files to server...');
+  console.log("Uploading", selectedMediaFiles.length, "files to server...");
 
-  const formData=new FormData();
-  selectedMediaFiles.forEach((file)=>{
-    formData.append('media',file);
+  const formData = new FormData();
+  selectedMediaFiles.forEach((file) => {
+    formData.append("media", file);
   });
 
-  try{
-    const token=localStorage.getItem('token');
+  try {
+    const token = localStorage.getItem("token");
 
-    const response=await fetch(`${API_BASE_URL}/api/media/upload`,{
-      method:'POST',
-      headers:{
-        'Authorization':`Bearer ${token}`
+    const response = await fetch(`${API_BASE_URL}/api/media/upload`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-      body:formData
+      body: formData,
     });
 
-    const data=await response.json();
-    console.log('Upload response',data);
+    const data = await response.json();
+    console.log("Upload response", data);
 
-    if(data.success){
-      console.log('Media uploaded successfully!');
+    if (data.success) {
+      console.log("Media uploaded successfully!");
       return data.data.media;
+    } else {
+      throw new Error(data.message || "Failed to upload media");
     }
-    else{
-      throw new Error(data.message||'Failed to upload media');
-    }
-
-  } catch(error){
-    console.error('Error uploading media',error);
+  } catch (error) {
+    console.error("Error uploading media", error);
     throw error;
   }
 }
-
 
 // ============================================
 // INITIALIZE DASHBOARD
@@ -972,6 +1037,8 @@ async function initDashboard() {
   console.log("🚀 Initializing dashboard...");
   console.log("=".repeat(50));
 
+  // Check authentication
+  console.log("Step 1: Checking authentication...");
   const isAuthenticated = await checkAuthentication();
 
   if (!isAuthenticated) {
@@ -980,13 +1047,40 @@ async function initDashboard() {
   }
 
   console.log("✅ User authenticated - continuing initialization");
+  console.log("Step 2: Showing dashboard UI...");
 
+  // Show dashboard now that user is authenticated - with safety checks
+  const loadingElement = document.querySelector(".auth-loading");
+  if (loadingElement) {
+    console.log("✅ Found .auth-loading element, hiding it...");
+    loadingElement.style.display = "none";
+  } else {
+    console.warn("⚠️ .auth-loading element not found!");
+  }
+
+  console.log("✅ Adding 'authenticated' class to body...");
+  document.body.classList.add("authenticated");
+
+  // Verify body is visible
+  const bodyDisplay = window.getComputedStyle(document.body).display;
+  console.log("✅ Body display style:", bodyDisplay);
+
+  console.log("Step 3: Loading user data...");
   loadUserData();
+
+  console.log("Step 4: Setting up tweet composer...");
   setupTweetComposer();
+
+  console.log("Step 5: Setting up media upload...");
   setupMediaUpload();
+
+  console.log("Step 6: Setting up navigation...");
   setupNavigation();
+
+  console.log("Step 7: Setting up logout...");
   setupLogout();
 
+  console.log("Step 8: Loading tweets...");
   await loadTweets();
 
   const postButton = document.querySelector(".post-button");

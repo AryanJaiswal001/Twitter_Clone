@@ -8,12 +8,36 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <link rel="stylesheet" href="../src/css/dashboard.css" />
+    <link rel="stylesheet" href="/src/css/dashboard.css?v=8" />
+    <style>
+      /* Hide dashboard until authenticated */
+      body {
+        display: none;
+      }
+      body.authenticated {
+        display: block;
+      }
+      /* Loading spinner */
+      .auth-loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        background: #000;
+        color: #fff;
+        font-size: 20px;
+      }
+    </style>
   </head>
   <body>
+    <div class="auth-loading">
+      <i class="fa-solid fa-spinner fa-spin"></i>
+      <span style="margin-left: 10px">Verifying authentication...</span>
+    </div>
     <div class="container">
+      <!-- LEFT SIDEBAR -->
       <div class="left-sidebar">
-        <img src="../src/assets/logo.png" alt="Twitter logo" />
+        <img src="/src/assets/logo.png" alt="Twitter logo" />
         <div class="icons">
           <div class="nav-item active">
             <i class="fa-solid fa-house"></i>
@@ -49,11 +73,23 @@
           <span class="tweet-text">Tweet</span>
         </button>
         <div class="user-profile">
-          <img
-            src="../src/assets/profile.jpg"
-            alt="User Profile"
+          <div
             class="user-avatar"
-          />
+            style="
+              width: 40px;
+              height: 40px;
+              background: #1d9bf0;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <i
+              class="fa-solid fa-user"
+              style="color: white; font-size: 20px"
+            ></i>
+          </div>
           <div class="user-info">
             <span class="user-name">John Doe</span>
             <span class="user-handle">@johndoe</span>
@@ -64,32 +100,82 @@
         </div>
       </div>
 
+      <!-- MAIN CONTENT -->
       <div class="main-content">
         <div class="main-header">
           <h1>Home</h1>
           <i class="fa-solid fa-sparkles"></i>
         </div>
 
+        <!-- COMPOSE BOX -->
         <div class="post-area">
           <div class="post-compose">
-            <img
-              src="../src/assets/profile.jpg"
-              alt="Your Profile"
+            <div
               class="compose-avatar"
-            />
+              style="
+                width: 48px;
+                height: 48px;
+                background: #1d9bf0;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+              "
+            >
+              <i
+                class="fa-solid fa-user"
+                style="color: white; font-size: 24px"
+              ></i>
+            </div>
             <div class="compose-content">
               <textarea
                 class="post"
                 placeholder="What's happening?"
                 maxlength="280"
               ></textarea>
+
+              <!-- ✅ MEDIA PREVIEW SECTION -->
+              <div
+                id="media-preview-container"
+                style="display: none; margin-top: 12px"
+              >
+                <div
+                  id="media-previews"
+                  style="
+                    display: grid;
+                    grid-template-columns: repeat(
+                      auto-fill,
+                      minmax(150px, 1fr)
+                    );
+                    gap: 8px;
+                  "
+                ></div>
+              </div>
+
               <div class="post-privacy">
                 <i class="fa-solid fa-earth-americas"></i>
                 <span>Everyone can reply</span>
               </div>
+
               <div class="post-actions">
                 <div class="icons">
-                  <i class="fa-regular fa-image" title="Media"></i>
+                  <!-- ✅ MEDIA UPLOAD BUTTON -->
+                  <label for="media-upload" style="cursor: pointer">
+                    <i
+                      class="fa-regular fa-image"
+                      style="color: #1da1f2; font-size: 20px"
+                      title="Add photos or videos"
+                    ></i>
+                  </label>
+                  <input
+                    type="file"
+                    id="media-upload"
+                    accept="image/*,video/*"
+                    multiple
+                    style="display: none"
+                  />
+
                   <i class="fa-solid fa-poll" title="Poll"></i>
                   <i class="fa-regular fa-face-smile" title="Emoji"></i>
                   <i class="fa-regular fa-calendar" title="Schedule"></i>
@@ -118,131 +204,15 @@
 
         <div class="feed-divider"></div>
 
+        <!-- POSTS CONTAINER -->
         <div class="post-container">
           <div class="posts">
-            <div class="post-item">
-              <img
-                src="../src/assets/profile.jpg"
-                alt="Profile Picture"
-                class="profile-pic"
-              />
-              <div class="post-content">
-                <div class="post-header">
-                  <span class="username">John Doe</span>
-                  <i class="fa-solid fa-circle-check verified"></i>
-                  <span class="handle">@johndoe</span>
-                  <span class="timestamp">· 2h</span>
-                  <div class="post-menu">
-                    <i class="fa-solid fa-ellipsis"></i>
-                  </div>
-                </div>
-                <p class="post-text">
-                  Just launched my new project! Excited to share this with
-                  everyone. What do you think? 🚀 #WebDevelopment #JavaScript
-                </p>
-                <div class="post-media">
-                  <img
-                    src="../src/assets/sample-post.jpg"
-                    alt="Post Media"
-                    class="post-image"
-                  />
-                </div>
-                <div class="post-stats">
-                  <div class="stat-item">
-                    <i class="fa-regular fa-comment"></i>
-                    <span>24</span>
-                  </div>
-                  <div class="stat-item retweet">
-                    <i class="fa-solid fa-retweet"></i>
-                    <span>156</span>
-                  </div>
-                  <div class="stat-item like">
-                    <i class="fa-regular fa-heart"></i>
-                    <span>1.2K</span>
-                  </div>
-                  <div class="stat-item">
-                    <i class="fa-regular fa-chart-bar"></i>
-                    <span>2.5K</span>
-                  </div>
-                  <div class="stat-item">
-                    <i class="fa-regular fa-share-from-square"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="post-item">
-              <img
-                src="../src/assets/profile2.jpg"
-                alt="Profile Picture"
-                class="profile-pic"
-              />
-              <div class="post-content">
-                <div class="post-header">
-                  <span class="username">Jane Smith</span>
-                  <span class="handle">@janesmith</span>
-                  <span class="timestamp">· 4h</span>
-                  <div class="post-menu">
-                    <i class="fa-solid fa-ellipsis"></i>
-                  </div>
-                </div>
-                <p class="post-text">
-                  Beautiful sunset today! Nature never fails to amaze me 🌅
-                </p>
-                <div class="post-stats">
-                  <div class="stat-item">
-                    <i class="fa-regular fa-comment"></i>
-                    <span>8</span>
-                  </div>
-                  <div class="stat-item">
-                    <i class="fa-solid fa-retweet"></i>
-                    <span>42</span>
-                  </div>
-                  <div class="stat-item">
-                    <i class="fa-regular fa-heart"></i>
-                    <span>287</span>
-                  </div>
-                  <div class="stat-item">
-                    <i class="fa-regular fa-chart-bar"></i>
-                    <span>850</span>
-                  </div>
-                  <div class="stat-item">
-                    <i class="fa-regular fa-share-from-square"></i>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="post-item promoted">
-              <div class="promoted-label">
-                <i class="fa-solid fa-arrow-trend-up"></i>
-                <span>Promoted</span>
-              </div>
-              <img
-                src="../src/assets/brand-logo.jpg"
-                alt="Brand Profile"
-                class="profile-pic"
-              />
-              <div class="post-content">
-                <div class="post-header">
-                  <span class="username">TechCorp</span>
-                  <i class="fa-solid fa-circle-check verified"></i>
-                  <span class="handle">@techcorp</span>
-                  <span class="timestamp">· Promoted</span>
-                </div>
-                <p class="post-text">
-                  Discover the future of technology with our latest innovation.
-                  Join thousands of satisfied customers! #TechInnovation
-                </p>
-                <div class="post-cta">
-                  <button class="cta-button">Learn More</button>
-                </div>
-              </div>
-            </div>
+            <!-- Posts will be loaded here dynamically -->
           </div>
         </div>
       </div>
 
+      <!-- RIGHT SIDEBAR -->
       <div class="right-sidebar">
         <div class="search-container">
           <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -274,11 +244,23 @@
         <div class="suggestions-section">
           <h3>Who to follow</h3>
           <div class="suggestion-item">
-            <img
-              src="../src/assets/suggestion1.jpg"
-              alt="Suggested User"
+            <div
               class="suggestion-avatar"
-            />
+              style="
+                width: 48px;
+                height: 48px;
+                background: #8b5cf6;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <i
+                class="fa-solid fa-user"
+                style="color: white; font-size: 24px"
+              ></i>
+            </div>
             <div class="suggestion-info">
               <span class="suggestion-name">Sarah Wilson</span>
               <span class="suggestion-handle">@sarahw</span>
@@ -286,11 +268,23 @@
             <button class="follow-btn">Follow</button>
           </div>
           <div class="suggestion-item">
-            <img
-              src="../src/assets/suggestion2.jpg"
-              alt="Suggested User"
+            <div
               class="suggestion-avatar"
-            />
+              style="
+                width: 48px;
+                height: 48px;
+                background: #ec4899;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              <i
+                class="fa-solid fa-user"
+                style="color: white; font-size: 24px"
+              ></i>
+            </div>
             <div class="suggestion-info">
               <span class="suggestion-name">Mike Chen</span>
               <span class="suggestion-handle">@mikechen</span>
@@ -299,49 +293,6 @@
           </div>
           <div class="show-more">
             <span>Show more</span>
-          </div>
-        </div>
-
-        <!--COMPOSE BOX-->
-        <div class="compose-box">
-          <img src="..src/assets/profile.jpg" alt="Profile" class="profile-pic"/>
-          <div class="compose-content">
-            <textarea
-            class="post"
-            placeholder="What's happening?"
-            maxlength="280"
-            ></textarea>
-
-            <!--MEDIA PREVIEW SECTION(NEW)-->
-            <div id="media-preview-container" style="display:none; margin-top:12px;">
-              <div id="media-previews" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px">
-          </div>
-
-          <div class="compose-actions">
-            <div class="compose-icons">
-              <label for="media-upload" style="cursor:pointer;">
-                <i class="fa-regular fa-image" style="color:#1d9bf2; font-size:20px;" title="Add photos or videos"></i>
-              </label>
-              <input
-              type="file"
-              id="media-upload"
-              accept="image/*,video/*"
-              multiple
-              style="display: none;"
-              max="4"
-              />
-
-              <i class="fa-solid fa-list-ul"></i>
-              <i class="fa-regular fa-face-smile"></i>
-              <i class="fa-regular fa-calendar"></i>
-              <i class="fa-solid fa-location-dot"></i>
-            </div>
-           <div class="compose-meta">
-            <span class="char-text">280</span>
-            <button class="post-button" disabled>Post</button>
-           </div>
-          </div>
-            </div>
           </div>
         </div>
 
@@ -357,9 +308,7 @@
       </div>
     </div>
 
-    <!-- ============================================ -->
     <!-- REPLY MODAL -->
-    <!-- ============================================ -->
     <div
       id="reply-modal"
       style="
@@ -428,6 +377,7 @@
         >
           <button
             id="reply-submit-btn"
+            onclick="submitReply(replyingToTweetId)"
             style="
               background: #1d9bf0;
               color: white;
@@ -445,7 +395,6 @@
       </div>
     </div>
 
-    <!-- External JavaScript -->
-    <script src="../src/js/dashboard.js"></script>
+    <script src="/src/js/dashboard.js?v=8"></script>
   </body>
 </html>
