@@ -12,21 +12,32 @@ router.post("/", protect, async (req, res) => {
     console.log("📝 Creating new tweet...");
     console.log("User ID:", req.user._id);
     console.log("Content:", req.body.content);
+    console.log("Media:", req.body.media);
 
     const { content, media } = req.body;
 
     //Validation
     if (!content || content.trim().length === 0) {
+      if(!media||media.length===0)
+      {
       return res.status(400).json({
         success: false,
         message: "Tweet content is required",
-      });
+      })
+    };
     }
 
     if (content.length > 280) {
       return res.status(400).json({
         success: false,
         message: "Tweet exceeds 280 character limit",
+      });
+    }
+    //validate media array
+    if(media && media.length>280){
+      return res.status(400).json({
+        success:false,
+        message:'Tweet exceeds 280 character limit'
       });
     }
     //Create tweet

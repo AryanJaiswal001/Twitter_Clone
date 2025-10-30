@@ -24,7 +24,8 @@ const tweetSchema = new mongoose.Schema(
                 enum:['image','video','gif'],
             },
             url:String,
-            altText:String
+            altText:String,
+            publicId:String
         }
     ],
 

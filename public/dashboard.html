@@ -302,6 +302,49 @@
           </div>
         </div>
 
+        <!--COMPOSE BOX-->
+        <div class="compose-box">
+          <img src="..src/assets/profile.jpg" alt="Profile" class="profile-pic"/>
+          <div class="compose-content">
+            <textarea
+            class="post"
+            placeholder="What's happening?"
+            maxlength="280"
+            ></textarea>
+
+            <!--MEDIA PREVIEW SECTION(NEW)-->
+            <div id="media-preview-container" style="display:none; margin-top:12px;">
+              <div id="media-previews" style="display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:8px">
+          </div>
+
+          <div class="compose-actions">
+            <div class="compose-icons">
+              <label for="media-upload" style="cursor:pointer;">
+                <i class="fa-regular fa-image" style="color:#1d9bf2; font-size:20px;" title="Add photos or videos"></i>
+              </label>
+              <input
+              type="file"
+              id="media-upload"
+              accept="image/*,video/*"
+              multiple
+              style="display: none;"
+              max="4"
+              />
+
+              <i class="fa-solid fa-list-ul"></i>
+              <i class="fa-regular fa-face-smile"></i>
+              <i class="fa-regular fa-calendar"></i>
+              <i class="fa-solid fa-location-dot"></i>
+            </div>
+           <div class="compose-meta">
+            <span class="char-text">280</span>
+            <button class="post-button" disabled>Post</button>
+           </div>
+          </div>
+            </div>
+          </div>
+        </div>
+
         <div class="footer-links">
           <a href="#">Terms of Service</a>
           <a href="#">Privacy Policy</a>

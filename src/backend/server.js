@@ -4,8 +4,12 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+
 //Load environment config FIRST
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, '../../.env') }); // ✅ CHANGED);
 
 // Debug logs
 console.log("\n🔍 Environment Check:");
@@ -22,8 +26,9 @@ import authRoutes from "./routes/authRoutes.js";
 //Import tweet routes
 import tweetRoutes from "./routes/tweetRoutes.js";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+//Import media routes
+import mediaRoutes from "./routes/mediaRoutes.js";
+
 
 //Create Express App
 const app = express();
@@ -66,6 +71,7 @@ app.get("/api/health", (req, res) => {
 //API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/tweets", tweetRoutes);
+app.use("/api/media", mediaRoutes);
 
 //HTML Files
 app.get("/", (req, res) => {

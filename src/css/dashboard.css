@@ -680,6 +680,50 @@ body {
   transition: transform 0.3s ease;
 }
 
+/* Media Upload Styles */
+#media-preview-container {
+  border-radius: 12px;
+  padding: 8px;
+  background: #f7f9f9;
+}
+
+#media-previews {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Tweet Media Display */
+.tweet-media {
+  max-height: 500px;
+  background: #000;
+}
+
+.tweet-media.single {
+  max-height: 600px;
+}
+
+.tweet-media.double {
+  height: 300px;
+}
+
+.tweet-media.multiple {
+  height: 400px;
+}
+
+.tweet-media img,
+.tweet-media video {
+  transition: transform 0.2s ease;
+}
+
+.tweet-media img:hover {
+  transform: scale(1.02);
+}
+
+/* Media upload button hover */
+label[for="media-upload"]:hover i {
+  color: #1a8cd8;
+}
+
 .post-image:hover {
   transform: scale(1.02);
 }
