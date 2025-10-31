@@ -19,14 +19,16 @@ const tweetSchema = new mongoose.Schema(
 
         //Media attachments
         media:[{
+            url:{type:String,required:true},
+            
             type:{
                 type:String,
                 enum:['image','video','gif'],
+                default:"image",
             },
-            url:String,
-            altText:String,
-            publicId:String
-        }
+            altText:{type:String,default:""},
+            publicId:{type:String},
+        },
     ],
 
     //Tweet engagement metrics 
@@ -34,15 +36,26 @@ const tweetSchema = new mongoose.Schema(
         {
             type:mongoose.Schema.ObjectId,
             ref:'User'
-        }
+        },
     ],
 
     retweets:[
         {
             type:mongoose.Schema.Types.ObjectId,
-            ref:'User'
-        }
+            ref:'User',
+        },
     ],
+    replies:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:'User'
+        },
+    ],
+    repliesCount:{
+        type:Number,
+        default:0,
+    },
+    
 
     //Reply/thread functionality
 
@@ -57,7 +70,7 @@ const tweetSchema = new mongoose.Schema(
         {
             type:mongoose.Schema.Types.ObjectId,
             ref:'User'
-        }
+        },
     ],
 
     //Tweet visibility 
@@ -70,14 +83,14 @@ const tweetSchema = new mongoose.Schema(
     views:{
         type:Number,
         default:0
-    }
+    },
 
 },
     {
         timestamps:true,
         toJSON:{virtuals:true},
         toObject:{virtuals:true}
-    }
+    },
 );
 
 

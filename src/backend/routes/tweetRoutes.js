@@ -1,5 +1,5 @@
 import express from "express";
-import Tweet from "../models/Tweet.js";
+import Tweet from "../models/tweet.js";
 import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
@@ -17,29 +17,28 @@ router.post("/", protect, async (req, res) => {
     const { content, media } = req.body;
 
     //Validation
-    if (!content || content.trim().length === 0) {
-      if(!media||media.length===0)
+    if ((!content || content.trim().length === 0) && (!media||media.length===0))
       {
-      return res.status(400).json({
+        return res.status(400).json({
         success: false,
-        message: "Tweet content is required",
+        message: "Tweet content is required either post and media",
       })
     };
-    }
-
-    if (content.length > 280) {
+    if (content && content.length > 280) {
       return res.status(400).json({
         success: false,
         message: "Tweet exceeds 280 character limit",
       });
     }
-    //validate media array
-    if(media && media.length>280){
+    
+    //Validate media array
+    if(media && media.length>4){
       return res.status(400).json({
         success:false,
         message:'Tweet exceeds 280 character limit'
       });
     }
+    
     //Create tweet
     const tweet = await Tweet.create({
       content: content.trim(),

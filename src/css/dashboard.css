@@ -162,14 +162,14 @@ body {
   overflow: hidden;
 }
 
-.stat-item{
+.stat-item {
   transition: all 0.3s ease;
 }
 
 .stat-item:hover {
   transform: scale(1.1);
 }
-.stat-item.active{
+.stat-item.active {
   transform: scale(0.95);
 }
 /*Like button animation*/
@@ -535,48 +535,48 @@ body {
 }
 
 /*Reply tweet*/
-.reply-tweet{
-  margin-left:40px;
-  padding-left:20px;
+.reply-tweet {
+  margin-left: 40px;
+  padding-left: 20px;
   border-left: 2px solid #2f3336;
-  margin-top:8px;
+  margin-top: 8px;
 }
 
-.reply-tweet .profile-pic{
-  width:32px;
-  height:32px;
+.reply-tweet .profile-pic {
+  width: 32px;
+  height: 32px;
 }
 
-.view-replies-btn{
-  transition:all 0.2 ease;
+.view-replies-btn {
+  transition: all 0.2 ease;
 }
 
-.view-replies-btn:hover{
-  color:#1a8cd8 !important;
+.view-replies-btn:hover {
+  color: #1a8cd8 !important;
 }
 
-.view-replies-btn i{
-  transition:transform 0.3s ease;
+.view-replies-btn i {
+  transition: transform 0.3s ease;
 }
 
-.replies-container{
-  animation:slideDown 0.3 ease;
+.replies-container {
+  animation: slideDown 0.3 ease;
 }
 
-@keyframes slideDown{
-  from{
-    opacity:0;
-    max-height:0;
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
   }
-  to{
-    opacity:1;
-    max-height:2000px;
+  to {
+    opacity: 1;
+    max-height: 2000px;
   }
 }
 
 /*Reply modal improvements*/
 #reply-modal textarea {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 #reply-modal textarea:focus {
@@ -661,11 +661,41 @@ body {
   transform: rotate(90deg);
 }
 
+/* Tweet text styling */
 .post-text {
-  color: #14171a;
-  line-height: 1.5;
-  margin-bottom: 16px;
-  font-size: 16px;
+  margin: 0;
+  padding: 0;
+  margin-bottom: 12px;
+  font-size: 15px;
+  line-height: 20px;
+  color: #0f1419;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+
+/* Tweet media styling */
+.tweet-media {
+  margin-top: 12px;
+  border-radius: 16px;
+  overflow: hidden;
+  background: #000;
+}
+
+.tweet-media img,
+.tweet-media video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tweet-media.single {
+  max-height: 600px;
+}
+
+.tweet-media.double,
+.tweet-media.multiple {
+  height: 300px;
 }
 
 .post-media {
@@ -1149,15 +1179,19 @@ label[for="media-upload"]:hover i {
   }
 }
 
-@keyframes spin{
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-.fa-spinner{
+.fa-spinner {
   animation: spin 1s linear infinite;
 }
 
-.post-item{
-  transition:all 0.3s ease;
+.post-item {
+  transition: all 0.3s ease;
 }

@@ -7,7 +7,7 @@ let currentUser = null;
 let replyingToTweetId = null;
 
 console.log(
-  "🚀 Dashboard script loaded - v8 (MEDIA DISPLAY FIXED) - " +
+  "🚀 Dashboard script loaded - v11 (MEDIA DISPLAY FIXED) - " +
     new Date().toLocaleTimeString()
 );
 console.log("🔧 API Base URL:", API_BASE_URL);
@@ -208,17 +208,24 @@ async function postTweet() {
       mediaData = await uploadMediaToServer();
       console.log("Media uploaded", mediaData.length, "files");
     }
+
     //Step-2 Post tweet with media URL's
     postButton.textContent = "Posting tweet...";
-    const token = localStorage.getItem("token");
 
+    const tweetData = {
+      content: content,
+      media: mediaData,
+    };
+
+    //Posting it to backend
+    const token = localStorage.getItem("token");
     const response = await fetch(`${API_BASE_URL}/api/tweets`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ content, media: mediaData }),
+      body: JSON.stringify(tweetData),
     });
 
     const data = await response.json();
@@ -257,18 +264,26 @@ function createTweetHTML(tweet, isReply = false) {
   const author = tweet.author || currentUser;
   const authorName = author.fullName || author.fullname || "Unknown User";
   const authorHandle = author.username || "unknown";
-  // Use a data URL for a simple colored circle avatar as fallback
+
   const authorAvatar =
     author.avatar ||
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%231d9bf0'/%3E%3Ctext x='50' y='50' font-size='50' fill='white' text-anchor='middle' dominant-baseline='central' font-family='Arial'%3E👤%3C/text%3E%3C/svg%3E";
+
   const timeAgo = getTimeAgo(new Date(tweet.createdAt));
-  const safeContent = escapeHTML(tweet.content);
+
+  // ✅ FIXED: Properly escape and handle content
+  const safeContent = tweet.content ? escapeHTML(tweet.content.trim()) : "";
 
   const isOwnTweet = currentUser && tweet.author._id === currentUser._id;
 
-  // Generate media HTML if present
+  // Media rendering (keep as is)
   let mediaHTML = "";
-  if (tweet.media && tweet.media.length > 0) {
+  if (tweet.media && Array.isArray(tweet.media) && tweet.media.length > 0) {
+    console.log(
+      `  📷 Tweet has ${tweet.media.length} media file(s):`,
+      tweet.media
+    );
+
     const mediaCount = tweet.media.length;
     const gridClass =
       mediaCount === 1 ? "single" : mediaCount === 2 ? "double" : "multiple";
@@ -283,23 +298,27 @@ function createTweetHTML(tweet, isReply = false) {
     }">
     ${tweet.media
       .map((media, index) => {
+        console.log(`    🖼️ Media ${index + 1}:`, media);
+
         if (media.type === "image") {
           return `
         <div style="${
-          mediaCount > 2 && index === 0 ? "grid-row: span 2; " : ""
-        }position: relative;">
+          mediaCount > 2 && index === 0 ? "grid-row: span 2;" : ""
+        } position: relative;">
           <img src="${media.url}" alt="${media.altText || "Tweet image"}"
-            style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;"
-            onclick="openMediaModal('${media.url}', 'image')" />
+            style="width: 100%; height: 100%; object-fit: cover; cursor: pointer; display: block;"
+            onclick="openMediaModal('${media.url}', 'image')" 
+            onerror="console.error('Failed to load image:', '${media.url}')" />
         </div>
         `;
         } else if (media.type === "video") {
           return `
         <div style="${
-          mediaCount > 2 && index === 0 ? "grid-row: span 2; " : ""
-        }position: relative;">
+          mediaCount > 2 && index === 0 ? "grid-row: span 2;" : ""
+        } position: relative;">
           <video src="${media.url}" controls
-            style="width: 100%; height: 100%; object-fit: cover;">
+            style="width: 100%; height: 100%; object-fit: cover; display: block;"
+            onerror="console.error('Failed to load video:', '${media.url}')">
             Your browser does not support the video tag.
           </video>
         </div>
@@ -338,10 +357,11 @@ function createTweetHTML(tweet, isReply = false) {
     ? '<i class="fa-solid fa-reply" style="color:#536471; margin-right:8px;"></i>'
     : "";
 
+  // ✅ FIXED: Proper HTML structure with content INSIDE post-content div
   return `
     <div class="post-item ${replyClass}" data-tweet-id="${tweet._id}">
       ${replyIcon}
-      <img src="${authorAvatar}" alt="Profile" class="profile-pic" />
+      <img src="${authorAvatar}" alt="Profile" class="profile-pic" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ccircle cx=%2750%27 cy=%2750%27 r=%2750%27 fill=%27%231d9bf0%27/%3E%3Ctext x=%2750%27 y=%2750%27 font-size=%2750%27 fill=%27white%27 text-anchor=%27middle%27 dominant-baseline=%27central%27 font-family=%27Arial%27%3E👤%3C/text%3E%3C/svg%3E'" />
       <div class="post-content">
         <div class="post-header">
           <span class="username">${authorName}</span>
@@ -361,7 +381,8 @@ function createTweetHTML(tweet, isReply = false) {
           `
           }
         </div>
-        <p class="post-text">${safeContent}</p>
+        ${safeContent ? `<p class="post-text">${safeContent}</p>` : ""}
+        ${mediaHTML}
         <div class="post-stats">
           <div class="stat-item comment-btn" onclick="openReplyModal('${
             tweet._id
