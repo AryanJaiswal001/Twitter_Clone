@@ -31,6 +31,25 @@ const tweetSchema = new mongoose.Schema(
         },
     ],
 
+    //Poll field
+    poll:{
+        question:{type:String,maxlength:280},
+        options:[
+            {
+                text:{type:String,required:true,maxlength:100},
+                votes:[
+                    {
+                      type:mongoose.Schema.Types.ObjectId,
+                      ref:"User",
+                        
+                    },
+                ],
+            },
+        ],
+        duration:{type:Number,default:1440},
+        endsAt:{type:Date},
+    },
+
     //Tweet engagement metrics 
     likes:[
         {

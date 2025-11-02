@@ -7,7 +7,7 @@ let currentUser = null;
 let replyingToTweetId = null;
 
 console.log(
-  "🚀 Dashboard script loaded - v11 (MEDIA DISPLAY FIXED) - " +
+  "🚀 Dashboard script loaded - v14 (POLL FIXED) - " +
     new Date().toLocaleTimeString()
 );
 console.log("🔧 API Base URL:", API_BASE_URL);
@@ -181,6 +181,9 @@ async function postTweet() {
   const postButton = document.querySelector(".post-button");
   const content = textarea.value.trim();
 
+  //Get poll data
+  const pollData = getPollData();
+
   //Allow tweets with only media
   if (!content && selectedMediaFiles.length === 0) {
     alert("Please write something or attach media before posting!");
@@ -217,6 +220,11 @@ async function postTweet() {
       media: mediaData,
     };
 
+    // Only add poll if it exists
+    if (pollData) {
+      tweetData.poll = pollData;
+    }
+
     //Posting it to backend
     const token = localStorage.getItem("token");
     const response = await fetch(`${API_BASE_URL}/api/tweets`, {
@@ -244,6 +252,9 @@ async function postTweet() {
       document.getElementById("media-preview-container").style.display = "none";
       document.getElementById("media-upload").value = "";
 
+      //Clear poll
+      clearPollUI();
+
       await loadTweets();
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
@@ -270,13 +281,10 @@ function createTweetHTML(tweet, isReply = false) {
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='50' fill='%231d9bf0'/%3E%3Ctext x='50' y='50' font-size='50' fill='white' text-anchor='middle' dominant-baseline='central' font-family='Arial'%3E👤%3C/text%3E%3C/svg%3E";
 
   const timeAgo = getTimeAgo(new Date(tweet.createdAt));
-
-  // ✅ FIXED: Properly escape and handle content
   const safeContent = tweet.content ? escapeHTML(tweet.content.trim()) : "";
-
   const isOwnTweet = currentUser && tweet.author._id === currentUser._id;
 
-  // Media rendering (keep as is)
+  // Media rendering
   let mediaHTML = "";
   if (tweet.media && Array.isArray(tweet.media) && tweet.media.length > 0) {
     console.log(
@@ -331,6 +339,80 @@ function createTweetHTML(tweet, isReply = false) {
     `;
   }
 
+  // ✅ FIXED: Poll rendering with proper template string syntax
+  let pollHTML = "";
+  if (tweet.poll && tweet.poll.options && tweet.poll.options.length > 0) {
+    console.log(
+      `  🗳️ Tweet has a poll with ${tweet.poll.options.length} options`
+    );
+
+    const totalVotes = tweet.poll.options.reduce(
+      (sum, option) => sum + option.votes.length,
+      0
+    );
+    const hasVoted = tweet.poll.options.some((option) =>
+      option.votes.includes(currentUser._id)
+    );
+    const pollEnded =
+      tweet.poll.endsAt && new Date() > new Date(tweet.poll.endsAt);
+
+    pollHTML = `
+    <div class="tweet-poll" style="margin-top:12px; padding:12px; border:1px solid #eff3f4; border-radius:12px;">
+      ${tweet.poll.options
+        .map((option, index) => {
+          const voteCount = option.votes.length;
+          const percentage =
+            totalVotes > 0 ? ((voteCount / totalVotes) * 100).toFixed(1) : 0;
+          const isUserVote = option.votes.includes(currentUser._id);
+
+          if (hasVoted || pollEnded) {
+            // Show results
+            return `
+              <div class="poll-option-result" style="margin-bottom:8px; position:relative; cursor:default;">
+                <div style="background: ${
+                  isUserVote ? "#1da1f2" : "#eff3f4"
+                }; border-radius:4px; padding:12px; position:relative; overflow:hidden;">
+                  <div style="position:absolute; left:0; top:0; bottom:0; width:${percentage}%; background:${
+              isUserVote ? "#1a8cd8" : "#d7dbdc"
+            }; transition:width 0.3s ease;"></div>
+                  <div style="position:relative; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight: ${
+                      isUserVote ? "bold" : "normal"
+                    };">
+                      ${isUserVote ? "✓ " : ""}${escapeHTML(option.text)}
+                    </span>
+                    <span style="font-weight: bold;">${percentage}%</span>
+                  </div>
+                </div>
+              </div>
+            `;
+          } else {
+            // Show voteable options
+            return `
+              <button class="poll-option" onclick="voteOnPoll('${
+                tweet._id
+              }', ${index})" 
+  style="width: 100%; margin-bottom: 8px; padding: 12px; border: 1px solid #eff3f4; 
+  border-radius: 4px; background: white; cursor: pointer; text-align: left; 
+  transition: background 0.2s; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 15px;">
+                ${escapeHTML(option.text)}
+              </button>
+            `;
+          }
+        })
+        .join("")}
+      <div style="margin-top: 12px; color: #536471; font-size: 13px; display: flex; justify-content: space-between;">
+        <span>${totalVotes} ${totalVotes === 1 ? "vote" : "votes"}</span>
+        <span>${
+          pollEnded
+            ? "Final results"
+            : getTimeRemaining(new Date(tweet.poll.endsAt))
+        }</span>
+      </div>
+    </div>
+    `;
+  }
+
   // Calculate tweet stats and state
   const isLiked =
     Array.isArray(tweet.likes) &&
@@ -357,7 +439,6 @@ function createTweetHTML(tweet, isReply = false) {
     ? '<i class="fa-solid fa-reply" style="color:#536471; margin-right:8px;"></i>'
     : "";
 
-  // ✅ FIXED: Proper HTML structure with content INSIDE post-content div
   return `
     <div class="post-item ${replyClass}" data-tweet-id="${tweet._id}">
       ${replyIcon}
@@ -383,6 +464,7 @@ function createTweetHTML(tweet, isReply = false) {
         </div>
         ${safeContent ? `<p class="post-text">${safeContent}</p>` : ""}
         ${mediaHTML}
+        ${pollHTML}
         <div class="post-stats">
           <div class="stat-item comment-btn" onclick="openReplyModal('${
             tweet._id
@@ -854,6 +936,31 @@ function getTimeAgo(date) {
 
   return Math.floor(seconds) + "s";
 }
+// Add this helper function after the getTimeAgo function
+
+function getTimeRemaining(endDate) {
+  const now = new Date();
+  const end = new Date(endDate);
+  const diff = end - now;
+
+  if (diff <= 0) {
+    return "Poll ended";
+  }
+
+  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+
+  if (days > 0) {
+    return `${days} day${days > 1 ? "s" : ""} left`;
+  } else if (hours > 0) {
+    return `${hours} hour${hours > 1 ? "s" : ""} left`;
+  } else if (minutes > 0) {
+    return `${minutes} minute${minutes > 1 ? "s" : ""} left`;
+  } else {
+    return "Less than a minute left";
+  }
+}
 
 function escapeHTML(text) {
   const div = document.createElement("div");
@@ -953,6 +1060,184 @@ function setupMediaUpload() {
   });
 
   console.log("✅ Media upload setup complete");
+}
+
+// ============================================
+// POLL FUNCTIONALITY
+// ============================================
+
+let pollOptionCount = 2; // ✅ Only declaration needed
+
+// Get poll data from UI
+function getPollData() {
+  const pollContainer = document.getElementById("poll-creation-container");
+
+  if (!pollContainer || pollContainer.style.display === "none") {
+    return null;
+  }
+
+  const options = [];
+  for (let i = 1; i <= 4; i++) {
+    const input = document.getElementById(`poll-option-${i}`);
+    if (input && input.style.display !== "none" && input.value.trim()) {
+      options.push({ text: input.value.trim() });
+    }
+  }
+
+  if (options.length < 2) {
+    return null;
+  }
+
+  const duration = parseInt(document.getElementById("poll-duration").value);
+
+  return {
+    options,
+    duration,
+  };
+}
+
+// Clear poll UI after posting
+function clearPollUI() {
+  const pollContainer = document.getElementById("poll-creation-container");
+  if (pollContainer) {
+    pollContainer.style.display = "none";
+  }
+
+  pollOptionCount = 2;
+
+  for (let i = 1; i <= 4; i++) {
+    const input = document.getElementById(`poll-option-${i}`);
+    if (input) {
+      input.value = "";
+      if (i > 2) {
+        input.style.display = "none";
+      }
+    }
+  }
+
+  const addOptionBtn = document.getElementById("add-poll-option-btn");
+  if (addOptionBtn) {
+    addOptionBtn.disabled = false;
+    addOptionBtn.style.opacity = "1";
+  }
+
+  const mediaUploadBtn = document.querySelector('label[for="media-upload"]');
+  if (mediaUploadBtn) {
+    mediaUploadBtn.style.pointerEvents = "auto";
+    mediaUploadBtn.style.opacity = "1";
+  }
+}
+
+// Vote on a poll
+async function voteOnPoll(tweetId, optionIndex) {
+  try {
+    console.log(
+      `🗳️ Voting on poll for tweet ${tweetId}, option ${optionIndex}`
+    );
+    const token = localStorage.getItem("token");
+
+    const response = await fetch(`${API_BASE_URL}/api/tweets/${tweetId}/vote`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ optionIndex }),
+    });
+    const data = await response.json();
+    console.log("📦 Vote response:", data);
+    if (data.success) {
+      console.log("✅ Vote successful, reloading tweets...");
+      await loadTweets();
+      setTimeout(() => {
+        const tweetElement = document.querySelector(
+          `[data-tweet-id="${tweetId}"]`
+        );
+      }, 1000);
+    } else {
+      console.error("❌ Vote failed:", data.message);
+      alert("Failed to vote on poll: " + data.message);
+    }
+  } catch (error) {
+    console.error("❌ Error voting on poll:", error);
+    alert("Failed to vote on poll. Please try again.");
+  }
+}
+
+// Setup poll creation UI
+function setupPollCreation() {
+  console.log("🗳️ Setting up poll creation...");
+
+  const pollButton = document.querySelector(".fa-poll");
+  const pollContainer = document.getElementById("poll-creation-container");
+  const addOptionBtn = document.getElementById("add-poll-option-btn");
+  const removePollBtn = document.getElementById("remove-poll-btn");
+  const mediaUploadBtn = document.querySelector('label[for="media-upload"]');
+
+  if (!pollButton || !pollContainer) {
+    console.error("❌ Poll elements not found");
+    return;
+  }
+
+  pollButton.addEventListener("click", () => {
+    const isVisible = pollContainer.style.display !== "none";
+
+    if (isVisible) {
+      // Hide poll
+      pollContainer.style.display = "none";
+      mediaUploadBtn.style.pointerEvents = "auto";
+      mediaUploadBtn.style.opacity = "1";
+    } else {
+      // Show poll
+      pollContainer.style.display = "block";
+      // Hide media
+      mediaUploadBtn.style.pointerEvents = "none";
+      mediaUploadBtn.style.opacity = "0.5";
+      // Clear any selected media
+      selectedMediaFiles = [];
+      displayMediaPreviews();
+    }
+  });
+
+  // Add poll option
+  addOptionBtn.addEventListener("click", () => {
+    if (pollOptionCount < 4) {
+      pollOptionCount++;
+      const optionInput = document.getElementById(
+        `poll-option-${pollOptionCount}`
+      );
+      if (optionInput) {
+        optionInput.style.display = "block";
+      }
+      if (pollOptionCount === 4) {
+        addOptionBtn.disabled = true;
+        addOptionBtn.style.opacity = "0.5";
+      }
+    }
+  });
+
+  // Remove poll
+  removePollBtn.addEventListener("click", () => {
+    pollContainer.style.display = "none";
+    pollOptionCount = 2;
+
+    // Clear all inputs
+    for (let i = 1; i <= 4; i++) {
+      const input = document.getElementById(`poll-option-${i}`);
+      if (input) {
+        input.value = "";
+        if (i > 2) {
+          input.style.display = "none";
+        }
+      }
+    }
+    addOptionBtn.disabled = false;
+    addOptionBtn.style.opacity = "1";
+    mediaUploadBtn.style.pointerEvents = "auto";
+    mediaUploadBtn.style.opacity = "1";
+  });
+
+  console.log("✅ Poll creation setup complete");
 }
 
 //Media preview
@@ -1098,10 +1383,13 @@ async function initDashboard() {
   console.log("Step 6: Setting up navigation...");
   setupNavigation();
 
-  console.log("Step 7: Setting up logout...");
+  console.log("Step 7: Setting up poll creation");
+  setupPollCreation();
+
+  console.log("Step 8: Setting up logout...");
   setupLogout();
 
-  console.log("Step 8: Loading tweets...");
+  console.log("Step 9: Loading tweets...");
   await loadTweets();
 
   const postButton = document.querySelector(".post-button");

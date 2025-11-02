@@ -8,7 +8,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
-    <link rel="stylesheet" href="/src/css/dashboard.css?v=8" />
+    <link rel="stylesheet" href="/src/css/dashboard.css?v=14" />
     <style>
       /* Hide dashboard until authenticated */
       body {
@@ -151,6 +151,132 @@
                     gap: 8px;
                   "
                 ></div>
+              </div>
+
+              <!--POLL CREATION SECTION-->
+              <div
+                id="poll-creation-container"
+                style="
+                  display: none;
+                  margin-top: 12px;
+                  padding: 12px;
+                  border: 1px solid #eff3f4;
+                  border-radius: 12px;
+                "
+              >
+                <div style="margin-bottom: 12px">
+                  <input
+                    type="text"
+                    id="poll-option-1"
+                    placeholder="Choice 1"
+                    maxlength="100"
+                    style="
+                      width: 100%;
+                      padding: 8px 12px;
+                      border: 1px solid #eff3f4;
+                      border-radius: 8px;
+                      font-size: 15px;
+                      margin-bottom: 8px;
+                    "
+                  />
+                  <input
+                    type="text"
+                    id="poll-option-2"
+                    placeholder="Choice 2"
+                    maxlength="100"
+                    style="
+                      width: 100%;
+                      padding: 8px 12px;
+                      border: 1px solid #eff3f4;
+                      border-radius: 8px;
+                      font-size: 15px;
+                      margin-bottom: 8px;
+                    "
+                  />
+                  <input
+                    type="text"
+                    id="poll-option-3"
+                    placeholder="Choice 3 (optional)"
+                    style="
+                      width: 100%;
+                      padding: 8px 12px;
+                      border: 1px solid #eff3f4;
+                      border-radius: 8px;
+                      font-size: 15px;
+                      margin-bottom: 8px;
+                      display: none;
+                    "
+                  />
+                  <input
+                    type="text"
+                    id="poll-option-4"
+                    placeholder="Choice 4 (optional)"
+                    maxlength="100"
+                    style="
+                      width: 100%;
+                      padding: 8px 12px;
+                      border: 1px solid #eff3f4;
+                      border-radius: 8px;
+                      font-size: 15px;
+                      margin-bottom: 8px;
+                      display: none;
+                    "
+                  />
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                  "
+                >
+                  <button
+                    id="add-poll-option-btn"
+                    style="
+                      background: none;
+                      border: 1px solid #1da1f2;
+                      color: #1da1f2;
+                      padding: 6px 12px;
+                      border-radius: 16px;
+                      font-size: 14px;
+                      cursor: pointer;
+                    "
+                  >
+                    + Add option
+                  </button>
+                  <select
+                    id="poll-duration"
+                    style="
+                      padding: 6px 12px;
+                      border: 1px solid #eff3f4;
+                      border-radius: 8px;
+                      font-size: 14px;
+                      cursor: pointer;
+                    "
+                  >
+                    <option value="5">5 minutes</option>
+                    <option value="30">30 minutes</option>
+                    <option value="60">1 hour</option>
+                    <option value="360">6 hours</option>
+                    <option value="1440" selected>1 day</option>
+                    <option value="4320">3 days</option>
+                    <option value="10080">7 days</option>
+                  </select>
+
+                  <button
+                    id="remove-poll-btn"
+                    style="
+                      background: none;
+                      border: none;
+                      color: #f91880;
+                      cursor: pointer;
+                      font-size: 20px;
+                    "
+                    title="Remove poll"
+                  >
+                    <i class="fa-solid fa-xmark"></i>
+                  </button>
+                </div>
               </div>
 
               <div class="post-privacy">
@@ -395,6 +521,6 @@
       </div>
     </div>
 
-    <script src="/src/js/dashboard.js?v=11"></script>
+    <script src="/src/js/dashboard.js?v=14"></script>
   </body>
 </html>

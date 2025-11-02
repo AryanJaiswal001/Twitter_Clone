@@ -13,37 +13,71 @@ router.post("/", protect, async (req, res) => {
     console.log("User ID:", req.user._id);
     console.log("Content:", req.body.content);
     console.log("Media:", req.body.media);
+    console.log("Poll", req.body.poll);
 
-    const { content, media } = req.body;
+    const { content, media, poll } = req.body;
 
     //Validation
-    if ((!content || content.trim().length === 0) && (!media||media.length===0))
-      {
-        return res.status(400).json({
+    if (
+      (!content || content.trim().length === 0) &&
+      (!media || media.length === 0) &&
+      (!poll || !poll.options || poll.options.length < 2)
+    ) {
+      return res.status(400).json({
         success: false,
-        message: "Tweet content is required either post and media",
-      })
-    };
+        message: "Tweet content is required either post, media or poll",
+      });
+    }
     if (content && content.length > 280) {
       return res.status(400).json({
         success: false,
         message: "Tweet exceeds 280 character limit",
       });
     }
-    
+
     //Validate media array
-    if(media && media.length>4){
+    if (media && media.length > 4) {
       return res.status(400).json({
-        success:false,
-        message:'Tweet exceeds 280 character limit'
+        success: false,
+        message: "Tweet exceeds 280 character limit",
       });
     }
-    
+
+    //Poll Logic
+    let pollData = null;
+    if (poll) {
+      if (!poll.options || poll.options.length < 2 || poll.options.length > 4) {
+        return res.status(400).json({
+          success: false,
+          message: "Poll must have 2-4 options",
+        });
+      }
+
+      const duration = poll.duration || 1440;
+      if (duration < 5 || duration > 10080) {
+        return res.status(400).json({
+          success: false,
+          message: "Poll duration must be between 5 min and 7 days",
+        });
+      }
+
+      //Initialize poll data
+      pollData = {
+        options: poll.options.map((option) => ({
+          text: option.text || option,
+          votes: [],
+        })),
+        duration: duration,
+        endsAt: new Date(Date.now() + duration * 60 * 1000),
+      };
+    }
+
     //Create tweet
     const tweet = await Tweet.create({
       content: content.trim(),
       author: req.user._id,
       media: media || [],
+      poll: pollData,
     });
 
     //Populate author info before sending
@@ -51,6 +85,8 @@ router.post("/", protect, async (req, res) => {
     await tweet.populate("author", "fullName username avatar");
 
     console.log("Tweet created", tweet._id);
+    console.log("Media files", media?.length || 0);
+    console.log("Has poll", !!poll);
 
     res.status(201).json({
       success: true,
@@ -82,25 +118,24 @@ router.get("/", protect, async (req, res) => {
     );
     //Add reply count
     const tweetsWithReplyCount = await Promise.all(
-      tweets.map(async(tweet)=>{
-        const replyCount=await Tweet.countDocuments({
-          replyTo:tweet._id,
-          isDeleted:false
+      tweets.map(async (tweet) => {
+        const replyCount = await Tweet.countDocuments({
+          replyTo: tweet._id,
+          isDeleted: false,
         });
-        return{
+        return {
           ...tweet.toObject(),
-          repliesCount:replyCount
+          repliesCount: replyCount,
         };
       })
     );
-    console.log(`Found ${tweetsWithReplyCount.length} tweets`)
+    console.log(`Found ${tweetsWithReplyCount.length} tweets`);
 
     res.json({
-      success:true,
-      count:tweetsWithReplyCount.length,
-      data:{tweets:tweetsWithReplyCount}
-    })
-
+      success: true,
+      count: tweetsWithReplyCount.length,
+      data: { tweets: tweetsWithReplyCount },
+    });
   } catch (error) {
     console.error("Error fetching tweets", error);
     res.status(500).json({
@@ -395,6 +430,80 @@ router.get("/:id/replies", protect, async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching replies",
+      error: error.message,
+    });
+  }
+});
+
+//POST /api/tweets/:id/vote
+router.post("/:id/vote", protect, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { optionIndex } = req.body;
+    const userId = req.user._id;
+
+    console.log(
+      `User ${req.user.username} voting on poll ${id}, option ${optionIndex}`
+    );
+
+    const tweet = await Tweet.findById(id);
+
+    if (!tweet) {
+      return res.status(404).json({
+        success: false,
+        message: "Tweet not found",
+      });
+    }
+
+    if (!tweet.poll || !tweet.poll.options) {
+      return res.status(400).json({
+        success: false,
+        message: "This tweet does not contain a poll",
+      });
+    }
+
+    //Check if poll has ended
+    if (tweet.poll.endsAt && new Date() > new Date(tweet.poll.endsAt)) {
+      return res.status(400).json({
+        success: false,
+        message: "This poll has ended",
+      });
+    }
+
+    //Check if option index is valid
+    if (optionIndex < 0 || optionIndex >= tweet.poll.options.length) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid option",
+      });
+    }
+
+    //Remove user's previous vote (if any)
+    tweet.poll.options.forEach((option) => {
+      const voteIndex = option.votes.indexOf(userId);
+      if (voteIndex > -1) {
+        option.votes.splice(voteIndex, 1);
+      }
+    });
+
+    //Add new vote
+    tweet.poll.options[optionIndex].votes.push(userId);
+
+    await tweet.save();
+    await tweet.populate("author", "fullName username avatar");
+
+    console.log("Vote recorded");
+
+    res.json({
+      success: true,
+      message: "Vote recorded successfully",
+      data: { tweet },
+    });
+  } catch (error) {
+    console.error("Error voting on poll", error);
+    res.status(500).json({
+      success: false,
+      message: "Error recording vote",
       error: error.message,
     });
   }
