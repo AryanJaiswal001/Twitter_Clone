@@ -7,7 +7,7 @@ let currentUser = null;
 let replyingToTweetId = null;
 
 console.log(
-  "🚀 Dashboard script loaded - v16 (EMOJI FIXED) - " +
+  "🚀 Dashboard script loaded - v18 (CALENDAR FIXED) - " +
     new Date().toLocaleTimeString()
 );
 console.log("🔧 API Base URL:", API_BASE_URL);
@@ -226,6 +226,12 @@ async function postTweet() {
       tweetData.poll = pollData;
     }
 
+    //Add date if selected
+    if (selectedEventDate) {
+      tweetData.scheduledDate = selectedEventDate;
+      console.log(`Including Scheduled date: ${selectedEventDate}`);
+    }
+
     //Posting it to backend
     const token = localStorage.getItem("token");
     const response = await fetch(`${API_BASE_URL}/api/tweets`, {
@@ -255,6 +261,9 @@ async function postTweet() {
 
       //Clear poll
       clearPollUI();
+
+      //Clear date
+      clearDateSelection();
 
       await loadTweets();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -963,6 +972,85 @@ function getTimeRemaining(endDate) {
   }
 }
 
+function formatDate(dateString) {
+  const date = new Date(dateString + "T00:00:00"); //Add time to avoid timezone
+
+  const options = {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  };
+
+  const formatted = date.toLocaleDateString("en-US", options);
+
+  //Add emoji and prefix
+  return `Event on ${formatted}`;
+}
+
+function insertDateAtCursor(formattedDate) {
+  const textarea = document.querySelector(".post");
+
+  if (!textarea) {
+    console.error("Textarea not found");
+    return;
+  }
+  console.log(`Inserting date "${formattedDate}" into textarea`);
+
+  //Remove old date text
+
+  if (dateTextInTweet) {
+    console.log(`🗑️ Removing old date "${dateTextInTweet}"`);
+    textarea.value = textarea.value.replace(dateTextInTweet, "");
+  }
+
+  //Get current cursor position
+  const cursorPos = textarea.selectionStart;
+  const text = textarea.value;
+
+  console.log(`📍 Cursor position: ${cursorPos}`);
+  console.log(`📄 Current text length: ${text.length}`);
+
+  //Splitting text at cursor
+  const before = text.substring(0, cursorPos);
+  const after = text.substring(cursorPos);
+
+  //Add space before date if needed
+  const needsSpaceBefore =
+    before.length > 0 && !before.endsWith(" ") && !before.endsWith("\n");
+  const spaceBefore = needsSpaceBefore ? " " : "";
+
+  //Add space after date if needed
+  const needsSpaceAfter =
+    after.length > 0 && !after.startsWith(" ") && !after.startsWith("\n");
+  const spaceAfter = needsSpaceAfter ? " " : "";
+
+  //Add dates with proper spaces
+  const dateWithSpaces = spaceBefore + formattedDate + spaceAfter;
+  textarea.value = before + dateWithSpaces + after;
+
+  //Moves cursor after inserted date
+  const newCursorPos = cursorPos + dateWithSpaces.length;
+  textarea.selectionStart = newCursorPos;
+  textarea.selectionEnd = newCursorPos;
+
+  console.log(`Inserted in position ${cursorPos}`);
+  console.log(`New cursor position: ${newCursorPos}`);
+  console.log(`New text length: ${textarea.value.length}`);
+
+  //Update stored date text
+  dateTextInTweet = formattedDate;
+
+  //Focus textarea
+  textarea.focus();
+
+  //Update character count
+  updateCharacterCount();
+
+  const postButton = document.querySelector(".post-button");
+  if (postButton && textarea.value.trim().length > 0) {
+    postButton.disabled = false;
+  }
+}
 function escapeHTML(text) {
   const div = document.createElement("div");
   div.textContent = text;
@@ -1240,105 +1328,105 @@ function setupPollCreation() {
 
   console.log("✅ Poll creation setup complete");
 }
+//Emoji picker
+let emojiPicker = null;
+let currentEmojiTarget = null;
 
-let emojiPicker=null;
-let currentEmojiTarget=null;
+//Calender state
+let selectedEventDate = null;
+let dateTextInTweet = "";
 
 //Initailise emoji picker
-function setupEmojiPicker(){
-  console.log("Setting up emoji picker")
+function setupEmojiPicker() {
+  console.log("Setting up emoji picker");
 
-  const emojiButton=document.getElementById("emoji-button");
-  const emojiContainer=document.getElementById("emoji-picker-container");
+  const emojiButton = document.getElementById("emoji-button");
+  const emojiContainer = document.getElementById("emoji-picker-container");
 
-  if(!emojiButton|| !emojiContainer)
-  {
-    console.log("Emoji elements not found")
-    return
+  if (!emojiButton || !emojiContainer) {
+    console.log("Emoji elements not found");
+    return;
   }
 
   //Create the emoji picker element (only once)
-  if(!emojiPicker){
-    console.log("Creating emoji picker element")
-    emojiPicker=document.getElementById("emoji-picker");
+  if (!emojiPicker) {
+    console.log("Creating emoji picker element");
+    emojiPicker = document.getElementById("emoji-picker");
 
-    if(!emojiPicker){
-      console.log("Creating emoji picker element...")
-      emojiPicker=document.createElement("emoji-picker");
+    if (!emojiPicker) {
+      console.log("Creating emoji picker element...");
+      emojiPicker = document.createElement("emoji-picker");
 
       //Style picker
-      emojiPicker.style.cssText=`
+      emojiPicker.style.cssText = `
       --border-radius: 12px;
       --border-color:#eff3f4;
       width:350px;
       max-width:90vw;
       `;
     }
-    emojiContainer.appendChild(emojiPicker)
+    emojiContainer.appendChild(emojiPicker);
     console.log("Emoji picker created");
 
     //Handle emoji selection
-    emojiPicker.addEventListener("emoji-click",(e)=>{
-      console.log("Emoji selected:",e.detail.unicode);
+    emojiPicker.addEventListener("emoji-click", (e) => {
+      console.log("Emoji selected:", e.detail.unicode);
       insertEmojiAtCursor(e.detail.unicode);
     });
-
   }
-   //Set initail target to main text area
-   currentEmojiTarget=document.querySelector(".post");
+  //Set initail target to main text area
+  currentEmojiTarget = document.querySelector(".post");
 
-   //Add click event listener 
-   emojiButton.addEventListener("click",(e)=>{
+  //Add click event listener
+  emojiButton.addEventListener("click", (e) => {
     e.stopPropagation();
     console.log("Emoji button clicked");
     toggleEmojiPicker();
-   });
-    
-    document.addEventListener("click",(e)=>{
-      const container=document.getElementById("emoji-picker-container");
-      const button=document.getElementById("emoji-button");
-
-      if(
-        container &&
-        container.style.display==="block" &&
-        !container.contains(e.target) && 
-        !button.contains(e.target)
-      ){
-        console.log("Closing picker (Clicked outside");
-        container.style.display="none";
-      }
   });
-   console.log("Emoji picker setup complete");
 
+  document.addEventListener("click", (e) => {
+    const container = document.getElementById("emoji-picker-container");
+    const button = document.getElementById("emoji-button");
+
+    if (
+      container &&
+      container.style.display === "block" &&
+      !container.contains(e.target) &&
+      !button.contains(e.target)
+    ) {
+      console.log("Closing picker (Clicked outside");
+      container.style.display = "none";
+    }
+  });
+  console.log("Emoji picker setup complete");
 }
 
-function insertEmojiAtCursor(emoji){
-  if(!currentEmojiTarget)
-  {
-    console.error("No target text area found")
+function insertEmojiAtCursor(emoji) {
+  if (!currentEmojiTarget) {
+    console.error("No target text area found");
     return;
   }
   console.log(`Inserting emoji "${emoji}" into textarea`);
 
   //Current cursor position
-  const cursorPos=currentEmojiTarget.selectionStart;
-  const cursorEnd=currentEmojiTarget.selectionEnd;
-  const text=currentEmojiTarget.value;
+  const cursorPos = currentEmojiTarget.selectionStart;
+  const cursorEnd = currentEmojiTarget.selectionEnd;
+  const text = currentEmojiTarget.value;
 
   console.log(`Cursor position ${cursorPos}-${cursorEnd}`);
   console.log(`Current text length: ${text.length}`);
 
   //Split text at cursor
-  const before=text.substring(0,cursorPos);
-  const after=text.substring(cursorEnd)
+  const before = text.substring(0, cursorPos);
+  const after = text.substring(cursorEnd);
 
   //Insert emoji
-  currentEmojiTarget.value=before+emoji+after;
+  currentEmojiTarget.value = before + emoji + after;
 
-  //Move cursor after emoji 
-  const newCursorPos=cursorPos+emoji.length;
-  currentEmojiTarget.selectionStart=newCursorPos;
-  currentEmojiTarget.selectionEnd=newCursorPos;
+  //Move cursor after emoji
+  const newCursorPos = cursorPos + emoji.length;
+  currentEmojiTarget.selectionStart = newCursorPos;
+  currentEmojiTarget.selectionEnd = newCursorPos;
 
   console.log(`Inserting at position ${cursorPos}`);
   console.log(`New cursor position ${newCursorPos}`);
@@ -1348,60 +1436,142 @@ function insertEmojiAtCursor(emoji){
 
   updateCharacterCount();
 
-   const postButton = document.querySelector(".post-button");
-   if (postButton && currentEmojiTarget.value.trim().length > 0) {
-     postButton.disabled = false;
-   }
+  const postButton = document.querySelector(".post-button");
+  if (postButton && currentEmojiTarget.value.trim().length > 0) {
+    postButton.disabled = false;
+  }
 }
-function updateCharacterCount(){
-  const textarea=document.querySelector(".post");
-  const charText=document.querySelector("char-text");
-  const postButton=document.querySelector(".post-button");
+function updateCharacterCount() {
+  const textarea = document.querySelector(".post");
+  const charText = document.querySelector(".char-text");
+  const postButton = document.querySelector(".post-button");
 
-  if(!textarea||!charText) return;
-    const remaining=280-textarea.value.length;
-    charText.textContent=remaining;
+  if (!textarea || !charText) return;
+  const remaining = 280 - textarea.value.length;
+  charText.textContent = remaining;
 
-    //Update color based on remaining 
-    if(remaining<0){
-      charText.style.color="$f4212e"; //Red
-      if(postButton) postButton.disabled=true;
-    } else if(remaining<20){
-      charText.style.color="#ffd400"; //Yellow warning
-    } else{
-      charText.style.color="1da1f2";//Blue
-    }
+  //Update color based on remaining
+  if (remaining < 0) {
+    charText.style.color = "#f4212e"; // Red
+    if (postButton) postButton.disabled = true;
+  } else if (remaining < 20) {
+    charText.style.color = "#ffd400"; //Yellow warning
+  } else {
+    charText.style.color = "#1da1f2"; // Blue
+  }
 
-    if(postButton){
-      const hasContent=textarea.value.trim().length>0 && remaining>=0;
-      postButton.disabled=!hasContent;
-    }
+  if (postButton) {
+    const hasContent = textarea.value.trim().length > 0 && remaining >= 0;
+    postButton.disabled = !hasContent;
+  }
 }
-
 
 //Toggle emoji picker visibility
-function toggleEmojiPicker(){
-  const emojiContainer=document.getElementById("emoji-picker-container");
+function toggleEmojiPicker() {
+  const emojiContainer = document.getElementById("emoji-picker-container");
 
-  if(!emojiContainer){
+  if (!emojiContainer) {
     console.error("Emoji container not found");
     return;
   }
-  const isVisible=emojiContainer.style.display!=="none";
+  const isVisible = emojiContainer.style.display !== "none";
 
-  if(isVisible){
+  if (isVisible) {
     console.log("Hiding emoji picker");
-    emojiContainer.style.display="none";
-  }
-  else{
+    emojiContainer.style.display = "none";
+  } else {
     console.log("Showing emoji picker");
-    emojiContainer.style.display="block";
-  
-  //Focus the textarea so user knows where emoji will go
-  if(currentEmojiTarget){
-    currentEmojiTarget.focus();
+    emojiContainer.style.display = "block";
+
+    //Focus the textarea so user knows where emoji will go
+    if (currentEmojiTarget) {
+      currentEmojiTarget.focus();
+    }
   }
+}
+
+function setupCalendarPicker() {
+  console.log("📅 Setting up calendar picker...");
+
+  const calendarButton = document.getElementById("calendar-button");
+  const dateInput = document.getElementById("date-picker-input");
+
+  if (!calendarButton || !dateInput) {
+    console.error("❌ Calendar elements not found");
+    console.log("🔍 Looking for: calendar-button, date-picker-input");
+    console.log("🔍 Found calendarButton:", !!calendarButton);
+    console.log("🔍 Found dateInput:", !!dateInput);
+    return;
   }
+
+  console.log("✅ Calendar elements found");
+
+  //Set minimum date to today
+  const today = new Date().toISOString().split("T")[0];
+  dateInput.min = today;
+  console.log(`📅 Min date set to ${today}`);
+
+  //Calendar button click -> open date picker
+  calendarButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    console.log("📅 Calendar button clicked");
+
+    //Modern browsers support showPicker()
+    if (dateInput.showPicker) {
+      console.log("📅 Using showPicker() method");
+      dateInput.showPicker();
+    } else {
+      console.log("📅 Using click() fallback");
+      dateInput.click();
+    }
+  });
+
+  //Handle date selection
+  dateInput.addEventListener("change", (e) => {
+    const selectedDate = e.target.value;
+
+    if (!selectedDate) {
+      console.log("❌ No date selected");
+      return;
+    }
+
+    console.log(`📅 Date selected: ${selectedDate}`);
+
+    //Store ISO date to backend
+    selectedEventDate = selectedDate;
+
+    // Format for display
+    const formattedDate = formatDate(selectedDate);
+    console.log(`📅 Formatted date: ${formattedDate}`);
+
+    // Insert into textarea
+    insertDateAtCursor(formattedDate);
+
+    // Show visual feedback
+    calendarButton.style.color = "#1da1f2";
+    console.log("✅ Date inserted successfully");
+  });
+
+  console.log("✅ Calendar picker setup complete");
+}
+
+// Clear date selection after posting
+function clearDateSelection() {
+  selectedEventDate = null;
+  dateTextInTweet = "";
+
+  const dateInput = document.getElementById("date-picker-input");
+  const calendarButton = document.getElementById("calendar-button");
+
+  if (dateInput) {
+    dateInput.value = "";
+  }
+
+  if (calendarButton) {
+    calendarButton.style.color = "";
+  }
+
+  console.log("✅ Date selection cleared");
 }
 
 //Media preview
@@ -1550,13 +1720,16 @@ async function initDashboard() {
   console.log("Step 7: Setting up poll creation");
   setupPollCreation();
 
-  console.log("Step-8: Setting up emoji creation")
+  console.log("Step-8: Setting up emoji creation");
   setupEmojiPicker();
 
-  console.log("Step 8: Setting up logout...");
+  console.log("Step 9: Setting up calendar picker"); // ✅ Fixed spelling
+  setupCalendarPicker(); // ✅ Fixed spelling: Calendar not Calender
+
+  console.log("Step 10: Setting up logout...");
   setupLogout();
 
-  console.log("Step 9: Loading tweets...");
+  console.log("Step 11: Loading tweets...");
   await loadTweets();
 
   const postButton = document.querySelector(".post-button");

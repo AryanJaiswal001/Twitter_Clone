@@ -335,7 +335,28 @@
                     </div>
                   </div>
 
-                  <i class="fa-regular fa-calendar" title="Schedule"></i>
+                  <!-- Calendar Icon with Hidden Date Input -->
+                  <div style="position: relative; display: inline-block">
+                    <i
+                      id="calendar-button"
+                      class="fa-regular fa-calendar"
+                      title="Schedule"
+                      style="cursor: pointer"
+                    ></i>
+
+                    <input
+                      type="date"
+                      id="date-picker-input"
+                      style="
+                        position: absolute;
+                        opacity: 0;
+                        pointer-events: none;
+                        width: 0;
+                        height: 0;
+                      "
+                    />
+                  </div>
+
                   <i class="fa-solid fa-location-dot" title="Location"></i>
                 </div>
 
