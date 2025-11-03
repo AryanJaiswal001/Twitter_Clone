@@ -7,7 +7,7 @@ let currentUser = null;
 let replyingToTweetId = null;
 
 console.log(
-  "🚀 Dashboard script loaded - v14 (POLL FIXED) - " +
+  "🚀 Dashboard script loaded - v16 (EMOJI FIXED) - " +
     new Date().toLocaleTimeString()
 );
 console.log("🔧 API Base URL:", API_BASE_URL);
@@ -152,6 +152,7 @@ function setupTweetComposer() {
   }
 
   textarea.addEventListener("input", function () {
+    updateCharacterCount();
     const remaining = maxLength - this.value.length;
     charText.textContent = remaining;
 
@@ -1240,6 +1241,169 @@ function setupPollCreation() {
   console.log("✅ Poll creation setup complete");
 }
 
+let emojiPicker=null;
+let currentEmojiTarget=null;
+
+//Initailise emoji picker
+function setupEmojiPicker(){
+  console.log("Setting up emoji picker")
+
+  const emojiButton=document.getElementById("emoji-button");
+  const emojiContainer=document.getElementById("emoji-picker-container");
+
+  if(!emojiButton|| !emojiContainer)
+  {
+    console.log("Emoji elements not found")
+    return
+  }
+
+  //Create the emoji picker element (only once)
+  if(!emojiPicker){
+    console.log("Creating emoji picker element")
+    emojiPicker=document.getElementById("emoji-picker");
+
+    if(!emojiPicker){
+      console.log("Creating emoji picker element...")
+      emojiPicker=document.createElement("emoji-picker");
+
+      //Style picker
+      emojiPicker.style.cssText=`
+      --border-radius: 12px;
+      --border-color:#eff3f4;
+      width:350px;
+      max-width:90vw;
+      `;
+    }
+    emojiContainer.appendChild(emojiPicker)
+    console.log("Emoji picker created");
+
+    //Handle emoji selection
+    emojiPicker.addEventListener("emoji-click",(e)=>{
+      console.log("Emoji selected:",e.detail.unicode);
+      insertEmojiAtCursor(e.detail.unicode);
+    });
+
+  }
+   //Set initail target to main text area
+   currentEmojiTarget=document.querySelector(".post");
+
+   //Add click event listener 
+   emojiButton.addEventListener("click",(e)=>{
+    e.stopPropagation();
+    console.log("Emoji button clicked");
+    toggleEmojiPicker();
+   });
+    
+    document.addEventListener("click",(e)=>{
+      const container=document.getElementById("emoji-picker-container");
+      const button=document.getElementById("emoji-button");
+
+      if(
+        container &&
+        container.style.display==="block" &&
+        !container.contains(e.target) && 
+        !button.contains(e.target)
+      ){
+        console.log("Closing picker (Clicked outside");
+        container.style.display="none";
+      }
+  });
+   console.log("Emoji picker setup complete");
+
+}
+
+function insertEmojiAtCursor(emoji){
+  if(!currentEmojiTarget)
+  {
+    console.error("No target text area found")
+    return;
+  }
+  console.log(`Inserting emoji "${emoji}" into textarea`);
+
+  //Current cursor position
+  const cursorPos=currentEmojiTarget.selectionStart;
+  const cursorEnd=currentEmojiTarget.selectionEnd;
+  const text=currentEmojiTarget.value;
+
+  console.log(`Cursor position ${cursorPos}-${cursorEnd}`);
+  console.log(`Current text length: ${text.length}`);
+
+  //Split text at cursor
+  const before=text.substring(0,cursorPos);
+  const after=text.substring(cursorEnd)
+
+  //Insert emoji
+  currentEmojiTarget.value=before+emoji+after;
+
+  //Move cursor after emoji 
+  const newCursorPos=cursorPos+emoji.length;
+  currentEmojiTarget.selectionStart=newCursorPos;
+  currentEmojiTarget.selectionEnd=newCursorPos;
+
+  console.log(`Inserting at position ${cursorPos}`);
+  console.log(`New cursor position ${newCursorPos}`);
+  console.log(`New text length: ${currentEmojiTarget.value.length}`);
+
+  currentEmojiTarget.focus();
+
+  updateCharacterCount();
+
+   const postButton = document.querySelector(".post-button");
+   if (postButton && currentEmojiTarget.value.trim().length > 0) {
+     postButton.disabled = false;
+   }
+}
+function updateCharacterCount(){
+  const textarea=document.querySelector(".post");
+  const charText=document.querySelector("char-text");
+  const postButton=document.querySelector(".post-button");
+
+  if(!textarea||!charText) return;
+    const remaining=280-textarea.value.length;
+    charText.textContent=remaining;
+
+    //Update color based on remaining 
+    if(remaining<0){
+      charText.style.color="$f4212e"; //Red
+      if(postButton) postButton.disabled=true;
+    } else if(remaining<20){
+      charText.style.color="#ffd400"; //Yellow warning
+    } else{
+      charText.style.color="1da1f2";//Blue
+    }
+
+    if(postButton){
+      const hasContent=textarea.value.trim().length>0 && remaining>=0;
+      postButton.disabled=!hasContent;
+    }
+}
+
+
+//Toggle emoji picker visibility
+function toggleEmojiPicker(){
+  const emojiContainer=document.getElementById("emoji-picker-container");
+
+  if(!emojiContainer){
+    console.error("Emoji container not found");
+    return;
+  }
+  const isVisible=emojiContainer.style.display!=="none";
+
+  if(isVisible){
+    console.log("Hiding emoji picker");
+    emojiContainer.style.display="none";
+  }
+  else{
+    console.log("Showing emoji picker");
+    emojiContainer.style.display="block";
+  
+  //Focus the textarea so user knows where emoji will go
+  if(currentEmojiTarget){
+    currentEmojiTarget.focus();
+  }
+  }
+}
+
 //Media preview
 function displayMediaPreviews() {
   console.log("🖼️ Displaying media previews...");
@@ -1385,6 +1549,9 @@ async function initDashboard() {
 
   console.log("Step 7: Setting up poll creation");
   setupPollCreation();
+
+  console.log("Step-8: Setting up emoji creation")
+  setupEmojiPicker();
 
   console.log("Step 8: Setting up logout...");
   setupLogout();

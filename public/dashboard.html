@@ -8,7 +8,11 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
     />
+    <script type="module">
+      import "https://cdn.jsdelivr.net/npm/emoji-picker-element@^1/index.js";
+    </script>
     <link rel="stylesheet" href="/src/css/dashboard.css?v=14" />
+
     <style>
       /* Hide dashboard until authenticated */
       body {
@@ -303,10 +307,38 @@
                   />
 
                   <i class="fa-solid fa-poll" title="Poll"></i>
-                  <i class="fa-regular fa-face-smile" title="Emoji"></i>
+
+                  <!-- ✅ EMOJI BUTTON WITH RELATIVE POSITIONING -->
+                  <div style="position: relative; display: inline-block">
+                    <i
+                      id="emoji-button"
+                      class="fa-regular fa-face-smile"
+                      title="Emoji"
+                      style="cursor: pointer"
+                    ></i>
+
+                    <!-- ✅ EMOJI PICKER CONTAINER - ABSOLUTELY POSITIONED -->
+                    <div
+                      id="emoji-picker-container"
+                      style="
+                        display: none;
+                        position: absolute;
+                        top: 40px;
+                        left: 0;
+                        z-index: 1000;
+                        background: white;
+                        border-radius: 12px;
+                        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                      "
+                    >
+                      <!-- Emoji picker will be inserted here dynamically -->
+                    </div>
+                  </div>
+
                   <i class="fa-regular fa-calendar" title="Schedule"></i>
                   <i class="fa-solid fa-location-dot" title="Location"></i>
                 </div>
+
                 <div class="post-controls">
                   <div class="character-count">
                     <svg viewBox="0 0 20 20" class="char-circle">
@@ -521,6 +553,6 @@
       </div>
     </div>
 
-    <script src="/src/js/dashboard.js?v=14"></script>
+    <script src="/src/js/dashboard.js?v=16"></script>
   </body>
 </html>
