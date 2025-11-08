@@ -7,7 +7,7 @@ let currentUser = null;
 let replyingToTweetId = null;
 
 console.log(
-  "🚀 Dashboard script loaded - v18 (CALENDAR FIXED) - " +
+  "🚀 Dashboard script loaded - v20 (LOCATION FIXED) - " +
     new Date().toLocaleTimeString()
 );
 console.log("🔧 API Base URL:", API_BASE_URL);
@@ -229,7 +229,20 @@ async function postTweet() {
     //Add date if selected
     if (selectedEventDate) {
       tweetData.scheduledDate = selectedEventDate;
-      console.log(`Including Scheduled date: ${selectedEventDate}`);
+      console.log(`📅 Including Scheduled date: ${selectedEventDate}`);
+    }
+
+    //Add location if selected
+    if (sharedLocation) {
+      tweetData.location = {
+        name: sharedLocation.name,
+        formatted: sharedLocation.formatted,
+        coords: {
+          latitude: sharedLocation.coords.latitude,
+          longitude: sharedLocation.coords.longitude,
+        },
+      };
+      console.log(`📍 Including location: ${sharedLocation.name}`);
     }
 
     //Posting it to backend
@@ -264,6 +277,9 @@ async function postTweet() {
 
       //Clear date
       clearDateSelection();
+
+      //Clear location
+      clearLocationSelection();
 
       await loadTweets();
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1336,6 +1352,11 @@ let currentEmojiTarget = null;
 let selectedEventDate = null;
 let dateTextInTweet = "";
 
+//Location sharing
+let sharedLocation = null;
+let locationTextInTweet = "";
+let isGettingLocation = false;
+
 //Initailise emoji picker
 function setupEmojiPicker() {
   console.log("Setting up emoji picker");
@@ -1670,6 +1691,323 @@ async function uploadMediaToServer() {
   }
 }
 
+function getUserLocation() {
+  return new Promise((resolve, reject) => {
+    console.log("Requesting user location...");
+
+    //Check if browser supports
+    if (!navigator.geolocation) {
+      console.error("Geolocation not supported by browser");
+      reject(new Error("Geolocation is not supported by your browser"));
+      return;
+    }
+
+    //Request location with timeout and high accuracy
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const coords = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        };
+        console.log("Got GPS coordinates", coords);
+        resolve(coords);
+      },
+      (error) => {
+        console.error("Geolocation error", error);
+
+        //Handle different error types
+        let errorMessage;
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage =
+              "Location permission denied. Please enable location access in your browser settings.";
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage =
+              "Location information unavailable. Please check your device's location settings.";
+            break;
+          case error.TIMEOUT:
+            errorMessage = "Location request timed out. Please try again.";
+            break;
+          default:
+            errorMessage = "An unknown error occurred while getting location.";
+        }
+
+        reject(new Error(errorMessage));
+      },
+      {
+        enableHighAccuracy: true, // Use GPS if available
+        timeout: 10000, // 10 second timeout
+        maximumAge: 0, // Don't use cached location
+      }
+    );
+  });
+}
+
+async function reverseGeocode(latitude, longitude) {
+  console.log(`🌍 Reverse geocoding: ${latitude}, ${longitude}`);
+
+  try {
+    // ⚠️ REPLACE YOUR_OPENCAGE_API_KEY_HERE with your actual API key from opencagedata.com
+    const OPENCAGE_API_KEY ="16b23b208d834f6fa1aeeda7973e4a9c";
+    const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude},${longitude}&key=${OPENCAGE_API_KEY}&language=en&pretty=1`;
+
+    console.log("📡 Fetching address from OpenCage API...");
+
+    //Make API request
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`API request failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    console.log("OpenCage response", data);
+
+    //Check if we got results
+    if (!data.results || data.results.length === 0) {
+      throw new Error("No results found for these coordinates");
+    }
+
+    //Extract location components
+    const result = data.results[0];
+    const components = result.components;
+
+    console.log("Location components:", components);
+
+    //Build formatted address
+    let locationName = "";
+
+    if (components.city) {
+      locationName = components.city;
+    } else if (components.town) {
+      locationName = components.town;
+    } else if (components.village) {
+      locationName = components.village;
+    } else if (components.county) {
+      locationName = components.county;
+    } else if (components.state) {
+      locationName = components.state;
+    }
+
+    //Add country
+    if (components.country) {
+      locationName += locationName
+        ? `, ${components.country}`
+        : components.country;
+    }
+
+    if (!locationName) {
+      locationName = result.formatted;
+    }
+    console.log("Formatted location", locationName);
+
+    return {
+      name: locationName,
+      formatted: result.formatted,
+      coords: {
+        latitude,
+        longitude,
+      },
+    };
+  } catch (error) {
+    console.error("Reverse geocoding failed", error);
+    throw new Error(`Failed to get address: ${error.message}`);
+  }
+}
+
+// Format location for display in tweet
+function formatLocationForTweet(locationName) {
+  // Shorten if too long (e.g., "New Delhi, Delhi, India" → "New Delhi, India")
+  const parts = locationName.split(",").map((part) => part.trim());
+
+  let formattedName;
+  if (parts.length > 2) {
+    // If we have city, state, country → use city, country
+    formattedName = `${parts[0]}, ${parts[parts.length - 1]}`;
+  } else {
+    // Otherwise use as is
+    formattedName = locationName;
+  }
+
+  return `📍 ${formattedName}`;
+}
+
+// Handle location button click - main function
+async function getAndInsertLocation() {
+  // Prevent multiple simultaneous requests
+  if (isGettingLocation) {
+    console.log("⚠️ Already getting location, please wait...");
+    return;
+  }
+
+  const locationButton = document.getElementById("location-button");
+
+  try {
+    isGettingLocation = true;
+
+    // Visual feedback - show loading state
+    if (locationButton) {
+      locationButton.style.color = "#1da1f2";
+      locationButton.classList.add("fa-spinner", "fa-spin");
+      locationButton.classList.remove("fa-location-dot");
+    }
+
+    console.log("📍 Getting user location...");
+
+    // Step 1: Get GPS coordinates
+    const coords = await getUserLocation();
+    console.log("✅ Got coordinates:", coords);
+
+    // Step 2: Reverse geocode to readable address
+    console.log("🌍 Converting to address...");
+    const location = await reverseGeocode(coords.latitude, coords.longitude);
+    console.log("✅ Got location:", location);
+
+    // Step 3: Format for tweet
+    const formattedLocation = formatLocationForTweet(location.name);
+    console.log("✅ Formatted:", formattedLocation);
+
+    // Step 4: Store location data
+    sharedLocation = location;
+
+    // Step 5: Insert into textarea
+    insertLocationAtCursor(formattedLocation);
+
+    // Step 6: Show success feedback
+    if (locationButton) {
+      locationButton.style.color = "#00ba7c"; // Green for success
+      locationButton.classList.remove("fa-spinner", "fa-spin");
+      locationButton.classList.add("fa-location-dot");
+    }
+
+    console.log("✅ Location inserted successfully");
+  } catch (error) {
+    console.error("❌ Error getting location:", error);
+
+    // Show error feedback
+    if (locationButton) {
+      locationButton.style.color = "#f91880"; // Red for error
+      locationButton.classList.remove("fa-spinner", "fa-spin");
+      locationButton.classList.add("fa-location-dot");
+
+      setTimeout(() => {
+        locationButton.style.color = "";
+      }, 2000);
+    }
+
+    // Show user-friendly error message
+    alert(error.message || "Failed to get location. Please try again.");
+  } finally {
+    isGettingLocation = false;
+  }
+}
+
+// Insert location text at cursor position
+function insertLocationAtCursor(formattedLocation) {
+  const textarea = document.querySelector(".post");
+
+  if (!textarea) {
+    console.error("❌ Textarea not found");
+    return;
+  }
+
+  console.log(`📍 Inserting location "${formattedLocation}" into textarea`);
+
+  // Remove old location text if exists
+  if (locationTextInTweet) {
+    console.log(`🗑️ Removing old location: "${locationTextInTweet}"`);
+    textarea.value = textarea.value.replace(locationTextInTweet, "");
+  }
+
+  // Get current cursor position
+  const cursorPos = textarea.selectionStart;
+  const text = textarea.value;
+
+  console.log(`  📍 Cursor position: ${cursorPos}`);
+  console.log(`  📄 Current text length: ${text.length}`);
+
+  // Split text at cursor
+  const before = text.substring(0, cursorPos);
+  const after = text.substring(cursorPos);
+
+  // Add space before location if needed
+  const needsSpaceBefore =
+    before.length > 0 && !before.endsWith(" ") && !before.endsWith("\n");
+  const spaceBefore = needsSpaceBefore ? " " : "";
+
+  // Add space after location if needed
+  const needsSpaceAfter =
+    after.length > 0 && !after.startsWith(" ") && !after.startsWith("\n");
+  const spaceAfter = needsSpaceAfter ? " " : "";
+
+  // Insert location with proper spacing
+  const locationWithSpaces = spaceBefore + formattedLocation + spaceAfter;
+  textarea.value = before + locationWithSpaces + after;
+
+  // Move cursor after inserted location
+  const newCursorPos = cursorPos + locationWithSpaces.length;
+  textarea.selectionStart = newCursorPos;
+  textarea.selectionEnd = newCursorPos;
+
+  console.log(`  ✅ Inserted at position ${cursorPos}`);
+  console.log(`  📍 New cursor position: ${newCursorPos}`);
+  console.log(`  📄 New text length: ${textarea.value.length}`);
+
+  // Update stored location text
+  locationTextInTweet = formattedLocation;
+
+  // Focus textarea
+  textarea.focus();
+
+  // Update character count
+  updateCharacterCount();
+
+  // Enable post button if needed
+  const postButton = document.querySelector(".post-button");
+  if (postButton && textarea.value.trim().length > 0) {
+    postButton.disabled = false;
+  }
+}
+
+// Setup location sharing button
+function setupLocationSharing() {
+  console.log("📍 Setting up location sharing...");
+
+  const locationButton = document.getElementById("location-button");
+
+  if (!locationButton) {
+    console.error("❌ Location button not found");
+    return;
+  }
+
+  // Add click event listener
+  locationButton.addEventListener("click", (e) => {
+    e.stopPropagation();
+    console.log("📍 Location button clicked");
+    getAndInsertLocation();
+  });
+
+  console.log("✅ Location sharing setup complete");
+}
+
+// Clear location selection after posting
+function clearLocationSelection() {
+  sharedLocation = null;
+  locationTextInTweet = "";
+
+  const locationButton = document.getElementById("location-button");
+
+  if (locationButton) {
+    locationButton.style.color = "";
+    // Don't modify innerHTML, just reset classes
+    locationButton.classList.remove("fa-spinner", "fa-spin");
+    locationButton.classList.add("fa-location-dot");
+  }
+
+  console.log("✅ Location selection cleared");
+}
+
 // ============================================
 // INITIALIZE DASHBOARD
 // ============================================
@@ -1726,10 +2064,13 @@ async function initDashboard() {
   console.log("Step 9: Setting up calendar picker"); // ✅ Fixed spelling
   setupCalendarPicker(); // ✅ Fixed spelling: Calendar not Calender
 
-  console.log("Step 10: Setting up logout...");
+  console.log("Step 10: Setting up location sharing");
+  setupLocationSharing();
+
+  console.log("Step 11: Setting up logout...");
   setupLogout();
 
-  console.log("Step 11: Loading tweets...");
+  console.log("Step 12: Loading tweets...");
   await loadTweets();
 
   const postButton = document.querySelector(".post-button");
