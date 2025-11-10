@@ -491,6 +491,7 @@ function createTweetHTML(tweet, isReply = false) {
         ${safeContent ? `<p class="post-text">${safeContent}</p>` : ""}
         ${mediaHTML}
         ${pollHTML}
+        ${createAIAnalysisLabel(tweet.aiAnalysis)}
         <div class="post-stats">
           <div class="stat-item comment-btn" onclick="openReplyModal('${
             tweet._id
@@ -735,6 +736,180 @@ async function retweetTweet(tweetId) {
     console.error("❌ Error retweeting:", error);
     alert("Failed to retweet. Please try again.");
   }
+}
+
+// ============================================
+// AI ANALYSIS LABEL RENDERING
+// ============================================
+
+/**
+ * Generate HTML for AI fake news analysis label
+ * @param {Object} aiAnalysis - AI analysis data from tweet
+ * @returns {string} HTML string for the label
+ */
+
+function createAIAnalysisLabel(aiAnalysis) {
+  //If no analysis data
+  if (!aiAnalysis || !aiAnalysis.label) {
+    return "";
+  }
+
+  const label = aiAnalysis.label;
+  const confidence = aiAnalysis.confidence || 0;
+
+  //Different styles based on label type
+  let labelHTML = "";
+
+  switch (label) {
+    case "FAKE":
+      //Red label for fake news
+      labelHTML = ` <div class="ai-analysis-label fake-news" style="
+          margin-top: 12px;
+          padding: 12px 16px;
+          background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+          border: 2px solid #ff4757;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          animation: pulse-red 2s infinite;
+        ">
+        <div style="
+            font-size: 24px;
+            line-height: 1;
+          ">🚨</div>
+          <div style="flex: 1;">
+            <div style="
+              color: white;
+              font-weight: 700;
+              font-size: 15px;
+              margin-bottom: 4px;
+            ">Fake News Detected</div>
+            <div style="
+              color: rgba(255, 255, 255, 0.9);
+              font-size: 13px;
+            ">
+              AI Confidence: ${confidence.toFixed(1)}%
+              <span style="margin-left: 8px; opacity: 0.8;">
+                • This content may be misleading
+              </span>
+            </div>
+          </div>
+          <div style="
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: white;
+            font-weight: 600;
+          ">
+            UNVERIFIED
+          </div>
+        </div>
+        
+        `;
+      break;
+
+    case "REAL":
+      // ✅ Green label for verified news
+      labelHTML = `
+        <div class="ai-analysis-label real-news" style="
+          margin-top: 12px;
+          padding: 12px 16px;
+          background: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+          border: 2px solid #00b8d4;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        ">
+          <div style="
+            font-size: 24px;
+            line-height: 1;
+          ">✅</div>
+          <div style="flex: 1;">
+            <div style="
+              color: white;
+              font-weight: 700;
+              font-size: 15px;
+              margin-bottom: 4px;
+            ">Verified News</div>
+             <div style="
+              color: rgba(255, 255, 255, 0.9);
+              font-size: 13px;
+            ">
+              AI Confidence: ${confidence.toFixed(1)}%
+              <span style="margin-left: 8px; opacity: 0.8;">
+                • Content appears credible
+              </span>
+            </div>
+          </div>
+          <div style="
+            background: rgba(255, 255, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: white;
+            font-weight: 600;
+          ">
+            VERIFIED
+          </div>
+        </div>
+        `;
+      break;
+
+    case "PENDING":
+      // ⏳ Gray label for pending analysis
+      labelHTML = `
+        <div class="ai-analysis-label pending" style="
+          margin-top: 12px;
+          padding: 10px 14px;
+          background: #f7f9fa;
+          border: 1px solid #e1e8ed;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        ">
+          <div style="font-size: 18px;">⏳</div>
+          <div style="
+            color: #536471;
+            font-size: 13px;
+          ">
+            AI analysis pending...
+          </div>
+        </div>
+      `;
+      break;
+
+    case "ERROR":
+      // ⚠️ Yellow label for analysis error
+      labelHTML = `
+        <div class="ai-analysis-label error" style="
+          margin-top: 12px;
+          padding: 10px 14px;
+          background: #fff3cd;
+          border: 1px solid #ffc107;
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          gap: 10px;
+        ">
+          <div style="font-size: 18px;">⚠️</div>
+          <div style="
+            color: #856404;
+            font-size: 13px;
+          ">
+            AI analysis unavailable - Pending manual review
+          </div>
+        </div>
+      `;
+      break;
+
+  default:
+    labelHTML='';
+  }
+  return labelHTML;
 }
 
 // ============================================
@@ -1749,7 +1924,7 @@ async function reverseGeocode(latitude, longitude) {
 
   try {
     // ⚠️ REPLACE YOUR_OPENCAGE_API_KEY_HERE with your actual API key from opencagedata.com
-    const OPENCAGE_API_KEY ="16b23b208d834f6fa1aeeda7973e4a9c";
+    const OPENCAGE_API_KEY = "16b23b208d834f6fa1aeeda7973e4a9c";
     const url = `https://api.opencagedata.com/geocode/v1/json?q=${latitude},${longitude}&key=${OPENCAGE_API_KEY}&language=en&pretty=1`;
 
     console.log("📡 Fetching address from OpenCage API...");
