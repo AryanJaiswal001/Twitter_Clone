@@ -4,6 +4,9 @@ import { protect } from "../middleware/auth.js";
 
 const router = express.Router();
 
+//AI service integrated
+import { analyzeText } from '../services/aiService.js';
+
 //Create Tweet
 //POST /api/tweets
 
@@ -43,6 +46,43 @@ router.post("/", protect, async (req, res) => {
       });
     }
 
+    //AI Analysis(After validation before saving)
+    let aiAnalysis={
+      label:'PENDING',
+      confidence:0,
+      fakeProbability:0,
+      realProbability:0,
+      analyzedAt:new Date()
+    };
+
+    //Only analyze text content (skip polls and media)
+    if(content && content.trim().length>0){
+      console.log("Starting AI fake news analysis")
+      const aiResult=await analyzeText(content);
+
+      if(aiResult.success){
+        console.log(`AI analysis ${aiResult.data.label} (${aiResult.data.confidence}%)`)
+
+        aiAnalysis={
+          label:aiResult.data.label,
+          confidence:aiResult.data.confidence,
+          fakeProbability:aiResult.data.fakeProbability,
+          realProbability:aiResult.data.realProbability,
+          analyzedAt:new Date(),
+        };
+      } else{
+        console.log(`AI analysis failed: ${aiResult.error}`);
+        console.log("Saving tweet with ERROR status (manual review required)");
+
+        aiAnalysis.label='ERROR';
+      }
+    }
+    else{
+      console.log("Skipping AI analysis (no text detected")
+      aiAnalysis.label='PENDING';
+    }
+
+
     //Poll Logic
     let pollData = null;
     if (poll) {
@@ -72,21 +112,42 @@ router.post("/", protect, async (req, res) => {
       };
     }
 
-    //Create tweet
+    //Create tweet with AI analysis
     const tweet = await Tweet.create({
       content: content.trim(),
       author: req.user._id,
       media: media || [],
       poll: pollData,
+      aiAnalysis,
     });
 
     //Populate author info before sending
 
     await tweet.populate("author", "fullName username avatar");
 
+
+    //Log AI results 
     console.log("Tweet created", tweet._id);
     console.log("Media files", media?.length || 0);
     console.log("Has poll", !!poll);
+    console.log(`AI label: ${aiAnalysis.label}`);
+
+    if(aiAnalysis.label==='FAKE'){
+      console.log('Fake news detected!')
+      console.log(`Confidence: ${aiAnalysis.confidence}%`)
+      console.log(`Tweet ID: ${tweet._id}`)
+    }
+    else if(aiAnalysis.label==='REAL'){
+      console.log('Real news confirmed.')
+      console.log(`Confidence: ${aiAnalysis.confidence}%`)
+      console.log(`Tweet ID: ${tweet._id}`)
+    }
+    else if(aiAnalysis.label==='ERROR'){
+      console.log('AI analysis error - manual review required.')
+      console.log(`Tweet ID: ${tweet._id}`)
+    }
+
+
 
     res.status(201).json({
       success: true,
