@@ -104,6 +104,33 @@ const tweetSchema = new mongoose.Schema(
         default:0
     },
 
+    //ADD- AI FAKE NEWS DETECTION FIELD
+    aiAnalysis:{
+        label:{
+            type:String,
+            enum:['REAL','FAKE','PENDING','ERROR'],
+            default:'PENDING'
+        },
+        confidence:{
+            type:Number,
+            min:0,
+            max:100
+        },
+        fakeProbability:{
+            type:Number,
+            min:0,
+            max:100
+        },
+        realProbability:{
+            type:Number,
+            min:0,
+            max:100
+        },
+        analyzedAt:{
+            type:Date,
+            default:Date.now
+        }
+    }
 },
     {
         timestamps:true,
