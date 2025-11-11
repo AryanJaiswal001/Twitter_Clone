@@ -41,7 +41,7 @@ Node.js + Express Backend
 1)Clone the Repository
 
 git clone https://github.com/AryanJaiswal001/Twitter_Clone.git
-cd <repo-name>
+cd Twitter_Clone
 
 2)Install Dependencies
 
